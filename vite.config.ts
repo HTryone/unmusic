@@ -37,9 +37,9 @@ function emscriptenExports(): Plugin {
                 // Force ENVIRONMENT_IS_NODE to false regardless of whether a `process`
                 // polyfill is present, so the bundle always takes the web/worker path.
                 .replace(/typeof process\.versions\.node==="string"/g, 'false');
-              // 浏览器/Worker 环境没有 __dirname/__filename。它们只出现在 emscripten
-              // 的脚本目录探测里，且所在分支在 ENVIRONMENT_IS_NODE 为 false 时不会真正
-              // 执行；显式声明为安全字面量，避免裸引用抛 ReferenceError。
+              // 注意：Vite 的全局 `define` 不会处理自定义 load 钩子返回的 node_modules
+              // 模块（实测仍残留裸 __dirname），因此这里必须自己注入声明。因 define 不
+              // 触碰本模块，`var __dirname` 不会被替换成 `var "/"`，不冲突。
               const shim = 'var __dirname = "/";\nvar __filename = ".";\n';
               return { code: `${shim}${code}\nexport default ${t.varName};\n`, map: null };
             }
@@ -119,8 +119,24 @@ export default defineConfig({
   },
   // WASM support: Vite handles .wasm as ES module by default
   assetsInclude: ['**/*.wasm'],
+  // 多个 Node 库（jimp/@jimp、emscripten 的 @xhacker 包）在浏览器无意义的分支里
+  // 裸引用 __dirname/__filename。浏览器/Worker 无这两个全局 → ReferenceError，
+  // 阻断解密模块图。用 define 在所有代码里把它们替换成安全字面量。
+  // 注意：define 做的是标识符文本替换（不影响 `.dirname` 成员访问），因此
+  //   `scriptDirectory=__dirname+"/"` → `scriptDirectory="/"+"/"`（合法）。
+  define: {
+    __dirname: '"/"',
+    __filename: '""',
+  },
   optimizeDeps: {
     exclude: ['@xhacker/qmcwasm', '@xhacker/kgmwasm'],
+    // 依赖预打包（esbuild）阶段同样需要替换，jimp 等被打进 chunk-*.js
+    esbuildOptions: {
+      define: {
+        __dirname: '"/"',
+        __filename: '""',
+      },
+    },
   },
   worker: {
     format: 'es',
