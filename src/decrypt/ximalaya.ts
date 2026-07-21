@@ -16,7 +16,7 @@ export async function Decrypt(file: File, raw_filename: string, raw_ext: string)
   const ext = SniffAudioExt(musicDecoded, 'm4a');
   const mime = AudioMimeType[ext];
 
-  let musicBlob = new Blob([musicDecoded], { type: mime });
+  let musicBlob = new Blob([musicDecoded as BlobPart], { type: mime });
 
   const musicMeta = await metaParseBlob(musicBlob);
 

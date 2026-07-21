@@ -54,7 +54,7 @@ class NcmDecrypt {
   blob?: Blob;
   oriMeta?: NcmMusicMeta;
   newMeta?: IMusicMeta;
-  image?: { mime: string; buffer: ArrayBuffer; url: string };
+  image?: { mime: string; buffer: ArrayBuffer | Uint8Array; url: string };
 
   constructor(buf: ArrayBuffer, filename: string) {
     const prefix = new Uint8Array(buf, 0, 8);
@@ -175,7 +175,7 @@ class NcmDecrypt {
       try {
         this.image = await GetImageFromURL(this.oriMeta.albumPic);
         while (this.image && this.image.buffer.byteLength >= 1 << 24) {
-          let img = await jimp.read(Buffer.from(this.image.buffer));
+          let img = await jimp.read(Buffer.from(this.image.buffer as ArrayBuffer));
           await img.resize(Math.round(img.getHeight() / 2), jimp.AUTO);
           this.image.buffer = await img.getBufferAsync('image/jpeg');
         }
@@ -189,7 +189,7 @@ class NcmDecrypt {
   async _writeMeta() {
     if (!this.audio || !this.newMeta) throw Error('invalid sequence');
 
-    if (!this.blob) this.blob = new Blob([this.audio], { type: this.mime });
+    if (!this.blob) this.blob = new Blob([this.audio as BlobPart], { type: this.mime });
     const ori = await metaParseBlob(this.blob);
 
     let shouldWrite = !ori.common.album && !ori.common.artists && !ori.common.title;
@@ -202,7 +202,7 @@ class NcmDecrypt {
         console.info(`writing meta for ${this.format} is not being supported for now`);
         return;
       }
-      this.blob = new Blob([this.audio], { type: this.mime });
+      this.blob = new Blob([this.audio as BlobPart], { type: this.mime });
     }
   }
 

@@ -72,7 +72,7 @@ export function GetArrayBuffer(obj: Blob): Promise<ArrayBuffer> {
 export function GetCoverFromFile(metadata: IAudioMetadata): string {
   if (metadata.common?.picture && metadata.common.picture.length > 0) {
     return URL.createObjectURL(
-      new Blob([metadata.common.picture[0].data], { type: metadata.common.picture[0].format }),
+      new Blob([metadata.common.picture[0].data as BlobPart], { type: metadata.common.picture[0].format }),
     );
   }
   return '';
@@ -124,7 +124,7 @@ export interface IMusicMeta {
   album?: string;
   albumartist?: string;
   genre?: string[];
-  picture?: ArrayBuffer;
+  picture?: ArrayBuffer | Uint8Array;
   picture_desc?: string;
 }
 
@@ -171,7 +171,7 @@ export function WriteMetaToFlac(audioData: Buffer, info: IMusicMeta, original: I
   }
 
   if (info.picture) {
-    writer.importPictureFromBuffer(Buffer.from(info.picture));
+    writer.importPictureFromBuffer(Buffer.from(info.picture as ArrayBuffer));
   }
   return writer.save();
 }
@@ -248,7 +248,7 @@ export function RewriteMetaToFlac(audioData: Buffer, info: IMusicMeta, original:
   }
 
   if (info.picture) {
-    writer.importPictureFromBuffer(Buffer.from(info.picture));
+    writer.importPictureFromBuffer(Buffer.from(info.picture as ArrayBuffer));
   }
   return writer.save();
 }

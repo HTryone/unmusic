@@ -43,6 +43,7 @@
     "node_modules",
     "dist",
     "src/**/__test__/**",
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "src/**/__mocks__/**"
   ]
 }

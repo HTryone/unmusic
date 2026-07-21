@@ -50,7 +50,7 @@ export async function Decrypt(file: Blob, raw_filename: string, raw_ext: string)
   let { version } = handler;
 
   const fileBuffer = await GetArrayBuffer(file);
-  let musicDecoded = new Uint8Array();
+  let musicDecoded: Uint8Array = new Uint8Array();
   let musicID: number | string | undefined;
 
   if (version === 2 && globalThis.WebAssembly) {
@@ -69,7 +69,7 @@ export async function Decrypt(file: Blob, raw_filename: string, raw_ext: string)
   const mime = AudioMimeType[ext];
 
   const { album, artist, imgUrl, blob, title } = await extractQQMusicMeta(
-    new Blob([musicDecoded], { type: mime }),
+    new Blob([musicDecoded as BlobPart], { type: mime }),
     raw_filename,
     ext,
     musicID,

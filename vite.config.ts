@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { fileURLToPath, URL } from 'node:url';
 
 // Vite + Vue 3 configuration for Unlock Music
@@ -14,6 +15,12 @@ export default defineConfig({
       script: {
         defineModel: true,
       },
+    }),
+    // Node polyfills for browser: jimp (album-art resize) needs Buffer + node builtins;
+    // ncm.ts also uses Buffer directly. protocolImports keeps ESM workers happy.
+    nodePolyfills({
+      globals: { Buffer: true, global: true, process: true },
+      protocolImports: true,
     }),
   ],
   resolve: {
