@@ -21,13 +21,19 @@
           @cancel="showEditDialog = false" @ok="handleEdit"></edit-dialog>
         <config-dialog :show="showConfigDialog" @done="showConfigDialog = false"></config-dialog>
         <el-tooltip class="item" effect="dark" placement="top">
-          <div slot="content">
+          <template #content>
             <span> 部分解密方案需要设定解密参数。 </span>
-          </div>
-          <el-button icon="el-icon-s-tools" plain @click="showConfigDialog = true">解密设定</el-button>
+          </template>
+          <el-button plain @click="showConfigDialog = true">
+            <el-icon><Tools /></el-icon>解密设定
+          </el-button>
         </el-tooltip>
-        <el-button icon="el-icon-download" plain @click="handleDownloadAll">下载全部</el-button>
-        <el-button icon="el-icon-delete" plain type="danger" @click="handleDeleteAll">清除全部</el-button>
+        <el-button plain @click="handleDownloadAll">
+          <el-icon><Download /></el-icon>下载全部
+        </el-button>
+        <el-button plain type="danger" @click="handleDeleteAll">
+          <el-icon><Delete /></el-icon>清除全部
+        </el-button>
 
         <el-tooltip class="item" effect="dark" placement="top-start">
           <div slot="content">
@@ -48,23 +54,28 @@
   </div>
 </template>
 
-<script>
-import FileSelector from '@/component/FileSelector';
-import PreviewTable from '@/component/PreviewTable';
-import ConfigDialog from '@/component/ConfigDialog';
-import EditDialog from '@/component/EditDialog';
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { Tools, Download, Delete } from '@element-plus/icons-vue';
+import FileSelector from '@/component/FileSelector.vue';
+import PreviewTable from '@/component/PreviewTable.vue';
+import ConfigDialog from '@/component/ConfigDialog.vue';
+import EditDialog from '@/component/EditDialog.vue';
 
 import { DownloadBlobMusic, FilenamePolicy, FilenamePolicies, RemoveBlobMusic, DirectlyWriteFile } from '@/utils/utils';
 import { GetImageFromURL, RewriteMetaToMp3, RewriteMetaToFlac, AudioMimeType, split_regex } from '@/decrypt/utils';
 import { parseBlob as metaParseBlob } from 'music-metadata-browser';
 
-export default {
+export default defineComponent({
   name: 'Home',
   components: {
     FileSelector,
     PreviewTable,
     ConfigDialog,
     EditDialog,
+    Tools,
+    Download,
+    Delete,
   },
   data() {
     return {
@@ -98,7 +109,7 @@ export default {
           duration: 3000,
         });
       }
-      if (process.env.NODE_ENV === 'production') {
+      if (import.meta.env.PROD) {
         let _rp_data = [data.title, data.artist, data.album];
         window._paq.push(['trackEvent', 'Unlock', data.rawExt + ',' + data.mime, JSON.stringify(_rp_data)]);
       }
@@ -115,7 +126,7 @@ export default {
         dangerouslyUseHTMLString: true,
         duration: 6000,
       });
-      if (process.env.NODE_ENV === 'production') {
+      if (import.meta.env.PROD) {
         window._paq.push(['trackEvent', 'Error', String(errInfo), filename]);
       }
     },
@@ -251,5 +262,5 @@ export default {
       }
     },
   },
-};
+});
 </script>

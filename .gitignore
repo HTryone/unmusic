@@ -32,3 +32,6 @@ yarn-error.log*
 *.zip
 *.tar.gz
 /sha256sum.txt
+
+# Vite temp config files
+vite.config.ts.timestamp-*.mjs

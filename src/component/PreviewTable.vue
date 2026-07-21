@@ -1,9 +1,11 @@
 <template>
   <el-table :data="tableData" style="width: 100%">
     <el-table-column label="封面">
-      <template slot-scope="scope">
+      <template #default="scope">
         <el-image :src="scope.row.picture" style="width: 100px; height: 100px">
-          <div slot="error" class="image-slot el-image__error">暂无封面</div>
+          <template #error>
+            <div class="image-slot el-image__error">暂无封面</div>
+          </template>
         </el-image>
       </template>
     </el-table-column>
@@ -24,43 +26,57 @@
     </el-table-column>
     <el-table-column label="操作">
       <template #default="scope">
-        <el-button circle icon="el-icon-video-play" type="success" @click="handlePlay(scope.$index, scope.row)">
+        <el-button circle type="success" @click="handlePlay(scope.$index, scope.row)">
+          <el-icon><VideoPlay /></el-icon>
         </el-button>
-        <el-button circle icon="el-icon-download" @click="handleDownload(scope.row)"></el-button>
-        <el-button circle icon="el-icon-edit" @click="handleEdit(scope.row)"></el-button>
-        <el-button circle icon="el-icon-delete" type="danger" @click="handleDelete(scope.$index, scope.row)">
+        <el-button circle @click="handleDownload(scope.row)">
+          <el-icon><Download /></el-icon>
+        </el-button>
+        <el-button circle @click="handleEdit(scope.row)">
+          <el-icon><Edit /></el-icon>
+        </el-button>
+        <el-button circle type="danger" @click="handleDelete(scope.$index, scope.row)">
+          <el-icon><Delete /></el-icon>
         </el-button>
       </template>
     </el-table-column>
   </el-table>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { RemoveBlobMusic } from '@/utils/utils';
+import { VideoPlay, Download, Edit, Delete } from '@element-plus/icons-vue';
 
-export default {
+export default defineComponent({
   name: 'PreviewTable',
+  components: {
+    VideoPlay,
+    Download,
+    Edit,
+    Delete,
+  },
   props: {
     tableData: { type: Array, required: true },
     policy: { type: Number, required: true },
   },
 
   methods: {
-    handlePlay(index, row) {
+    handlePlay(index: number, row: any) {
       this.$emit('play', row.file);
     },
-    handleDelete(index, row) {
+    handleDelete(index: number, row: any) {
       RemoveBlobMusic(row);
       this.tableData.splice(index, 1);
     },
-    handleDownload(row) {
+    handleDownload(row: any) {
       this.$emit('download', row);
     },
-    handleEdit(row) {
+    handleEdit(row: any) {
       this.$emit('edit', row);
     },
   },
-};
+});
 </script>
 
 <style scoped></style>

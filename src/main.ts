@@ -1,56 +1,22 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import App from '@/App.vue';
-import '@/registerServiceWorker';
-import {
-  Button,
-  Checkbox,
-  Col,
-  Container,
-  Dialog,
-  Form,
-  FormItem,
-  Footer,
-  Icon,
-  Image,
-  Input,
-  Link,
-  Main,
-  Notification,
-  Progress,
-  Radio,
-  Row,
-  Table,
-  TableColumn,
-  Tooltip,
-  Upload,
-  MessageBox,
-} from 'element-ui';
-import 'element-ui/lib/theme-chalk/base.css';
+import { ElNotification, ElMessageBox } from 'element-plus';
 
-Vue.use(Link);
-Vue.use(Image);
-Vue.use(Button);
-Vue.use(Dialog);
-Vue.use(Form);
-Vue.use(FormItem);
-Vue.use(Input);
-Vue.use(Table);
-Vue.use(TableColumn);
-Vue.use(Main);
-Vue.use(Footer);
-Vue.use(Container);
-Vue.use(Icon);
-Vue.use(Row);
-Vue.use(Col);
-Vue.use(Upload);
-Vue.use(Checkbox);
-Vue.use(Radio);
-Vue.use(Tooltip);
-Vue.use(Progress);
-Vue.prototype.$notify = Notification;
-Vue.prototype.$confirm = MessageBox.confirm;
+const app = createApp(App);
 
-Vue.config.productionTip = false;
-new Vue({
-  render: (h) => h(App),
-}).$mount('#app');
+// Register all Element Plus icons globally
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
+
+app.use(ElementPlus);
+
+// Preserve legacy $notify / $confirm global helpers used across components
+app.config.globalProperties.$notify = ElNotification;
+app.config.globalProperties.$confirm = ElMessageBox.confirm;
+app.config.globalProperties.$message = ElMessageBox;
+
+app.mount('#app');

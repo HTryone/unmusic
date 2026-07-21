@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import FileSelector from '@/component/FileSelector';
-import PreviewTable from '@/component/PreviewTable';
+import FileSelector from '@/component/FileSelector.vue';
+import PreviewTable from '@/component/PreviewTable.vue';
 import config from '@/../package.json';
-import Home from '@/view/Home';
+import Home from '@/view/Home.vue';
 import { checkUpdate } from '@/utils/api';
 
 export default {
@@ -58,7 +58,7 @@ export default {
       }
       if (
         updateInfo &&
-        process.env.NODE_ENV === 'production' &&
+        import.meta.env.PROD &&
         (updateInfo.HttpsFound || (updateInfo.Found && window.location.protocol !== 'https:'))
       ) {
         this.$notify.warning({

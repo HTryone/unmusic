@@ -15,18 +15,18 @@ label {
   color: #aaa;
 }
 
-form >>> input {
+form :deep(input) {
   font-family: 'Courier New', Courier, monospace;
 }
 
-* >>> .um-config-dialog {
+:deep(.um-config-dialog) {
   max-width: 90%;
   width: 40em;
 }
 </style>
 
 <template>
-  <el-dialog @close="cancel()" title="解密设定" :visible="show" custom-class="um-config-dialog" center>
+  <el-dialog v-model="visible" title="解密设定" class="um-config-dialog" center>
     <el-form ref="form" :rules="rules" status-icon :model="form" label-width="0">
       <section>
         <label>
@@ -49,18 +49,21 @@ form >>> input {
         </p>
       </section>
     </el-form>
-    <span slot="footer" class="dialog-footer">
-      <el-button type="primary" :loading="saving" @click="emitConfirm()">确 定</el-button>
-    </span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" :loading="saving" @click="emitConfirm()">确 定</el-button>
+      </span>
+    </template>
   </el-dialog>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { storage } from '@/utils/storage';
-import Ruby from './Ruby';
+import Ruby from './Ruby.vue';
 
 // FIXME: 看起来不会触发这个验证提示？
-function validateJooxUUID(rule, value, callback) {
+function validateJooxUUID(rule: any, value: any, callback: any) {
   if (!value || !/^[\da-fA-F]{32}$/.test(value)) {
     callback(new Error('无效的 Joox UUID，请参考 Wiki 获取。'));
   } else {
@@ -72,7 +75,7 @@ const rules = {
   jooxUUID: { validator: validateJooxUUID, trigger: 'change' },
 };
 
-export default {
+export default defineComponent({
   components: {
     Ruby,
   },
@@ -88,6 +91,18 @@ export default {
       },
       centerDialogVisible: false,
     };
+  },
+  computed: {
+    visible: {
+      get(): boolean {
+        return this.show;
+      },
+      set(val: boolean) {
+        if (!val) {
+          this.cancel();
+        }
+      },
+    },
   },
   async mounted() {
     await this.resetForm();
@@ -109,5 +124,5 @@ export default {
       this.$emit('done');
     },
   },
-};
+});
 </script>
