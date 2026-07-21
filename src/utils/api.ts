@@ -8,13 +8,20 @@ export interface UpdateInfo {
   Detail: string;
 }
 
-export async function checkUpdate(version: string): Promise<UpdateInfo> {
-  const resp = await fetch(IXAREA_API_ENDPOINT + '/music/app-version', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ Version: version }),
-  });
-  return await resp.json();
+export async function checkUpdate(version: string): Promise<UpdateInfo | null> {
+  try {
+    const resp = await fetch(IXAREA_API_ENDPOINT + '/music/app-version', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ Version: version }),
+    });
+    return await resp.json();
+  } catch {
+    // 版本检查为纯信息性请求，跨域/离线环境下必然失败（um-api.ixarea.com
+    // 不返回 CORS 头）。失败属预期，静默返回 null，由调用方走"离线使用"分支，
+    // 避免控制台出现红色 TypeError 堆栈。
+    return null;
+  }
 }
 
 export interface CoverInfo {
