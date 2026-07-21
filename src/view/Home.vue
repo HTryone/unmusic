@@ -141,7 +141,7 @@ export default defineComponent({
           duration: 3000,
         });
       }
-      if (import.meta.env.PROD) {
+      if (import.meta.env.PROD && window._paq) {
         let _rp_data = [data.title, data.artist, data.album];
         window._paq.push(['trackEvent', 'Unlock', data.rawExt + ',' + data.mime, JSON.stringify(_rp_data)]);
       }
@@ -158,7 +158,7 @@ export default defineComponent({
         dangerouslyUseHTMLString: true,
         duration: 6000,
       });
-      if (import.meta.env.PROD) {
+      if (import.meta.env.PROD && window._paq) {
         window._paq.push(['trackEvent', 'Error', String(errInfo), filename]);
       }
     },

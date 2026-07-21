@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, toRaw, markRaw } from 'vue';
 import { Upload, InfoFilled } from '@element-plus/icons-vue';
 import { DecryptQueue } from '@/utils/utils';
 import { storage } from '@/utils/storage';
@@ -122,7 +122,11 @@ export default defineComponent({
   mounted() {
     if (window.Worker && window.location.protocol !== 'file:' && import.meta.env.PROD) {
       console.log('Using Native Worker Pool');
-      this.pool = new NativeWorkerPool(navigator.hardwareConcurrency || 1);
+      // 必须用 markRaw：NativeWorkerPool 存进组件响应式 data 后会被 Vue 包成
+      // reactive Proxy，连带 taskQueue 里的每个任务对象（含 file/config）也变成
+      // Proxy。Worker.postMessage 走结构化克隆，不支持 Proxy，会抛 DataCloneError。
+      // markRaw 让 pool 脱离响应式，任务保持普通对象即可正常克隆。
+      this.pool = markRaw(new NativeWorkerPool(navigator.hardwareConcurrency || 1));
       this.parallel = true;
     } else {
       console.log('Using Queue in Main Thread');
@@ -138,20 +142,27 @@ export default defineComponent({
     async addFile(file: any) {
       this.task_all++;
       const config = await storage.getAll();
+      // el-upload 的 on-change 传入的是 Vue 响应式代理的 UploadFile（其 .raw 也是代理）。
+      // 结构化克隆算法不支持 Proxy，会直接让 Worker 的 postMessage 抛 DataCloneError；
+      // 而 dev 模式走主线程队列、不经过 postMessage，所以只有成品（PROD）才暴露该问题。
+      // 这里用 toRaw 取出真实对象，并只保留解密所需的 {name, raw} 纯字段再发给 Worker。
+      const f = toRaw(file);
+      const rawFile = toRaw(f.raw || f);
+      const filePayload = { name: f.name ?? rawFile.name, raw: rawFile };
       if (this.pool) {
         this.pool
-          .run(file, config)
+          .run(filePayload, config)
           .then((result) => this.$emit('success', result))
-          .catch((err) => this.$emit('error', err, file.name))
+          .catch((err) => this.$emit('error', err, filePayload.name))
           .finally(() => this.task_finished++);
       } else {
         this.queue.queue(async () => {
-          console.log('start handling', file.name);
+          console.log('start handling', filePayload.name);
           try {
-            this.$emit('success', await (await import('@/decrypt')).Decrypt(file, config));
+            this.$emit('success', await (await import('@/decrypt')).Decrypt(filePayload, config));
           } catch (e) {
             console.error(e);
-            this.$emit('error', e, file.name);
+            this.$emit('error', e, filePayload.name);
           } finally {
             this.task_finished++;
           }
