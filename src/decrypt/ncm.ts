@@ -189,7 +189,7 @@ class NcmDecrypt {
   async _writeMeta() {
     if (!this.audio || !this.newMeta) throw Error('invalid sequence');
 
-    if (!this.blob) this.blob = new Blob([this.audio as BlobPart], { type: this.mime });
+    if (!this.blob) this.blob = new Blob([new Uint8Array(this.audio as Uint8Array)], { type: this.mime });
     const ori = await metaParseBlob(this.blob);
 
     let shouldWrite = !ori.common.album && !ori.common.artists && !ori.common.title;
@@ -202,7 +202,7 @@ class NcmDecrypt {
         console.info(`writing meta for ${this.format} is not being supported for now`);
         return;
       }
-      this.blob = new Blob([this.audio as BlobPart], { type: this.mime });
+      this.blob = new Blob([new Uint8Array(this.audio as Uint8Array)], { type: this.mime });
     }
   }
 
