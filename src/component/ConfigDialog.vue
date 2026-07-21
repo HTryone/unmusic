@@ -23,6 +23,46 @@ form :deep(input) {
   max-width: 90%;
   width: 40em;
 }
+
+.kgg-key-list {
+  margin-top: 0.6em;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 0.4em 0.6em;
+}
+.kgg-key-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.3em;
+  font-size: small;
+  color: #ccc;
+}
+.kgg-key-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+}
+.kgg-key-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.kgg-key-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25em 0;
+  border-bottom: 1px solid #333;
+}
+.kgg-key-list li:last-child {
+  border-bottom: none;
+}
+.kgg-key-list code {
+  font-family: 'Courier New', Courier, monospace;
+  color: #9ad;
+  word-break: break-all;
+  margin-right: 0.5em;
+}
 </style>
 
 <template>
@@ -55,7 +95,7 @@ form :deep(input) {
         </label>
 
         <p class="item-desc">
-          解密 <code>.kgg</code> / <code>.kgg.flac</code> 文件需要导入密钥。
+          解密 <code>.kgg</code> / <code>.kgg.flac</code> 文件需导入密钥。
           当前已导入 <b>{{ kggKeyCount }}</b> 个密钥。
         </p>
 
@@ -70,10 +110,35 @@ form :deep(input) {
           <el-button type="primary" :loading="importing">导入 KGMusicV3.db 或 .kgg.key</el-button>
         </el-upload>
 
+        <div v-if="kggKeyCount > 0" class="kgg-key-list">
+          <div class="kgg-key-list-header">
+            <span>密钥列表（共 {{ kggKeyCount }} 个）</span>
+            <el-button type="danger" link size="small" :disabled="importing" @click="handleClearAll">
+              清空全部
+            </el-button>
+          </div>
+          <div class="kgg-key-scroll">
+            <ul>
+              <li v-for="id in kggKeyIds" :key="id">
+                <code :title="id">{{ truncateId(id) }}</code>
+                <el-button
+                  type="danger"
+                  link
+                  size="small"
+                  :disabled="importing"
+                  @click="handleDeleteKey(id)"
+                >
+                  删除
+                </el-button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <p class="item-desc">
-          Windows 用户可在
-          <code>C:\Users\Public\KuGou\KGMusic\KGMusicV3.db</code>
-          找到密钥数据库。导入后本地解密，不上传。
+          酷狗 v20 的密钥库通常在
+          <code>C:\Users\Htryone\AppData\Roaming\KuGou8\KGMusicV3.db</code>。
+          导入后本地解密，密钥仅存于本机浏览器，不上传。
         </p>
       </section>
     </el-form>
@@ -90,7 +155,14 @@ import { defineComponent } from 'vue';
 import { ElMessage } from 'element-plus';
 import { storage } from '@/utils/storage';
 import Ruby from './Ruby.vue';
-import { importFromDbFile, importFromKeyFile, loadKeysMap } from '@/utils/kgg-keys';
+import {
+  importFromDbFile,
+  importFromKeyFile,
+  loadKeysMap,
+  listKeyIds,
+  deleteKey,
+  clearKeys,
+} from '@/utils/kgg-keys';
 import type { UploadFile, UploadUserFile } from 'element-plus';
 
 // FIXME: 看起来不会触发这个验证提示？
@@ -122,8 +194,8 @@ export default defineComponent({
         jooxUUID: '',
       },
       kggKeyCount: 0,
+      kggKeyIds: [] as string[],
       kggFileList: [] as UploadUserFile[],
-      centerDialogVisible: false,
     };
   },
   computed: {
@@ -144,8 +216,18 @@ export default defineComponent({
   methods: {
     async resetForm() {
       this.form.jooxUUID = await storage.loadJooxUUID();
+      await this.refreshKggKeys();
+    },
+
+    async refreshKggKeys() {
       const map = await loadKeysMap();
       this.kggKeyCount = map.size;
+      this.kggKeyIds = await listKeyIds();
+    },
+
+    truncateId(id: string): string {
+      if (id.length <= 20) return id;
+      return `${id.slice(0, 10)}…${id.slice(-8)}`;
     },
 
     async cancel() {
@@ -165,10 +247,11 @@ export default defineComponent({
       this.importing = true;
       try {
         const fileName = uploadFile.name.toLowerCase();
-        const result = fileName.endsWith('.key')
-          ? await importFromKeyFile(uploadFile.raw)
-          : await importFromDbFile(uploadFile.raw);
-        this.kggKeyCount = result.total;
+        const result =
+          fileName.endsWith('.key')
+            ? await importFromKeyFile(uploadFile.raw)
+            : await importFromDbFile(uploadFile.raw);
+        await this.refreshKggKeys();
         ElMessage.success(`成功导入 ${result.added} 个新密钥，共 ${result.total} 个`);
       } catch (e: any) {
         ElMessage.error(`导入失败：${e?.message || e}`);
@@ -176,6 +259,18 @@ export default defineComponent({
         this.importing = false;
         this.kggFileList = [];
       }
+    },
+
+    async handleDeleteKey(id: string) {
+      const total = await deleteKey(id);
+      await this.refreshKggKeys();
+      ElMessage.success(`已删除 1 个密钥，剩余 ${total} 个`);
+    },
+
+    async handleClearAll() {
+      await clearKeys();
+      await this.refreshKggKeys();
+      ElMessage.success('已清空全部 KGG 密钥');
     },
   },
 });

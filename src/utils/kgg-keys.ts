@@ -5,6 +5,7 @@
  *   - 从 localStorage 加载/保存 KGG 密钥映射 (格式: "id$ekey" 每行一条)
  *   - 从 KGMusicV3.db (酷狗加密 SQLite) 解密并提取密钥
  *   - 从 .kgg.key 文本文件解析密钥
+ *   - 单条删除 / 清空全部
  *
  * 移植自 OpenConverter (Apache 2.0) 的 src/main/kgg-keys.js
  * 浏览器适配：去掉 WMI 全盘扫描，改用手动文件导入
@@ -30,6 +31,21 @@ async function getSqlJs(): Promise<SqlJsStatic> {
     sqlJsInstance = await initSqlJs({ locateFile: () => sqlWasmUrl });
   }
   return sqlJsInstance;
+}
+
+/**
+ * 串行化所有写操作，避免并发导入/删除时 localStorage 的
+ * "读-改-写"竞态——这正是「一次拖入多个文件却只留下 1 个密钥」的根因。
+ */
+let writeQueue: Promise<unknown> = Promise.resolve();
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const run = writeQueue.then(task, task);
+  // 单个任务报错不应中断整条队列
+  writeQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 /**
@@ -85,48 +101,84 @@ export async function saveKeysMap(map: Map<string, string>): Promise<void> {
 }
 
 /**
- * 从 KGMusicV3.db 文件导入密钥，合并到已保存的映射中
+ * 从 KGMusicV3.db 文件导入密钥，合并到已保存的映射中。
+ * 经串行队列执行，避免并发导入时互相覆盖。
  * @returns 新增数量和总数量
  */
 export async function importFromDbFile(file: File): Promise<{ added: number; total: number }> {
-  const buffer = await file.arrayBuffer();
-  const incoming = await importFromDb(buffer);
+  return enqueue(async () => {
+    const buffer = await file.arrayBuffer();
+    const incoming = await importFromDb(buffer);
 
-  const currentMap = await loadKeysMap();
-  const initialSize = currentMap.size;
+    const currentMap = await loadKeysMap();
+    const initialSize = currentMap.size;
 
-  for (const [id, val] of incoming.entries()) {
-    currentMap.set(id, val);
-  }
+    for (const [id, val] of incoming.entries()) {
+      currentMap.set(id, val);
+    }
 
-  const newSize = currentMap.size;
-  if (newSize > initialSize) {
-    await saveKeysMap(currentMap);
-  }
+    const newSize = currentMap.size;
+    if (newSize > initialSize) {
+      await saveKeysMap(currentMap);
+    }
 
-  return { added: newSize - initialSize, total: newSize };
+    return { added: newSize - initialSize, total: newSize };
+  });
 }
 
 /**
- * 从 .kgg.key 文本文件导入密钥，合并到已保存的映射中
+ * 从 .kgg.key 文本文件导入密钥，合并到已保存的映射中。
+ * 经串行队列执行，避免并发导入时互相覆盖。
  */
 export async function importFromKeyFile(file: File): Promise<{ added: number; total: number }> {
-  const text = await file.text();
-  const incoming = loadKeysMapFromText(text);
+  return enqueue(async () => {
+    const text = await file.text();
+    const incoming = loadKeysMapFromText(text);
 
-  const currentMap = await loadKeysMap();
-  const initialSize = currentMap.size;
+    const currentMap = await loadKeysMap();
+    const initialSize = currentMap.size;
 
-  for (const [id, val] of incoming.entries()) {
-    currentMap.set(id, val);
-  }
+    for (const [id, val] of incoming.entries()) {
+      currentMap.set(id, val);
+    }
 
-  const newSize = currentMap.size;
-  if (newSize > initialSize) {
-    await saveKeysMap(currentMap);
-  }
+    const newSize = currentMap.size;
+    if (newSize > initialSize) {
+      await saveKeysMap(currentMap);
+    }
 
-  return { added: newSize - initialSize, total: newSize };
+    return { added: newSize - initialSize, total: newSize };
+  });
+}
+
+/**
+ * 返回当前已导入的全部密钥 id（升序），用于界面展示
+ */
+export async function listKeyIds(): Promise<string[]> {
+  const map = await loadKeysMap();
+  return Array.from(map.keys()).sort();
+}
+
+/**
+ * 删除单个密钥
+ * @returns 删除后的密钥总数
+ */
+export async function deleteKey(id: string): Promise<number> {
+  return enqueue(async () => {
+    const map = await loadKeysMap();
+    map.delete(id);
+    await saveKeysMap(map);
+    return map.size;
+  });
+}
+
+/**
+ * 清空全部密钥
+ */
+export async function clearKeys(): Promise<void> {
+  return enqueue(async () => {
+    await saveKeysMap(new Map());
+  });
 }
 
 /**
