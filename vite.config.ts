@@ -1,14 +1,56 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+
+// The @xhacker/* WASM bundles are emscripten MODULARIZE modules that assign the
+// factory to a top-level `var XxxCryptoModule = (function(){...})()` with NO ESM
+// exports. Under webpack the old project used `exports-loader?XxxCryptoModule`
+// so `import XxxCryptoModule from ...` resolved. Vite has no such loader, so we
+// intercept the module via `load`, read the raw CJS source, append a real
+// `export default XxxCryptoModule`, and neutralise the node-only `require()`
+// calls (they live inside the `ENVIRONMENT_IS_NODE` branch and never run in a
+// browser, but esbuild would otherwise try to resolve "path"/"fs").
+function emscriptenExports(): Plugin {
+  const targets: Array<{ re: RegExp; varName: string; file: string }> = [
+    { re: /@xhacker[\\/]qmcwasm[\\/]QmcWasmBundle(?:\.js)?(\?.*)?$/, varName: 'QmcCryptoModule', file: '@xhacker/qmcwasm/QmcWasmBundle.js' },
+    { re: /@xhacker[\\/]kgmwasm[\\/]KgmWasmBundle(?:\.js)?(\?.*)?$/, varName: 'KgmCryptoModule', file: '@xhacker/kgmwasm/KgmWasmBundle.js' },
+  ];
+      return {
+        name: 'unlock-music:emscripten-exports',
+        load(id) {
+          for (const t of targets) {
+            if (t.re.test(id)) {
+              const abs = resolve(dirname(fileURLToPath(import.meta.url)), 'node_modules', t.file);
+              let code = readFileSync(abs, 'utf-8');
+              code = code
+                // The node-only `require()` calls live inside the `ENVIRONMENT_IS_NODE`
+                // branch which never runs in a browser/worker. Replace them with a
+                // harmless object so the surrounding `.dirname(...)` / `.readFileSync(...)`
+                // member accesses stay syntactically valid (a bare `0` would make
+                // `0.dirname` an illegal "identifier after number").
+                .replace(/require\("path"\)/g, '({})')
+                .replace(/require\("fs"\)/g, '({})')
+                // Force ENVIRONMENT_IS_NODE to false regardless of whether a `process`
+                // polyfill is present, so the bundle always takes the web/worker path.
+                .replace(/typeof process\.versions\.node==="string"/g, 'false');
+              return { code: `${code}\nexport default ${t.varName};\n`, map: null };
+            }
+          }
+          return null;
+        },
+      };
+}
 
 // Vite + Vue 3 configuration for Unlock Music
 // Migrated from Vue CLI (Webpack) on 2026-07-21
 export default defineConfig({
   base: './',
   plugins: [
+    emscriptenExports(),
     vue({
       // Vue 2 -> Vue 3 migration: support legacy slot syntax
       script: {
