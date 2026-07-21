@@ -48,6 +48,34 @@ form :deep(input) {
           >。
         </p>
       </section>
+
+      <section>
+        <label>
+          <span>酷狗 KGG v5 密钥</span>
+        </label>
+
+        <p class="item-desc">
+          解密 <code>.kgg</code> / <code>.kgg.flac</code> 文件需要导入密钥。
+          当前已导入 <b>{{ kggKeyCount }}</b> 个密钥。
+        </p>
+
+        <el-upload
+          v-model:file-list="kggFileList"
+          :auto-upload="false"
+          :show-file-list="false"
+          :on-change="handleKggFileChange"
+          accept=".db,.key"
+          drag
+        >
+          <el-button type="primary" :loading="importing">导入 KGMusicV3.db 或 .kgg.key</el-button>
+        </el-upload>
+
+        <p class="item-desc">
+          Windows 用户可在
+          <code>C:\Users\Public\KuGou\KGMusic\KGMusicV3.db</code>
+          找到密钥数据库。导入后本地解密，不上传。
+        </p>
+      </section>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -59,8 +87,11 @@ form :deep(input) {
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { ElMessage } from 'element-plus';
 import { storage } from '@/utils/storage';
 import Ruby from './Ruby.vue';
+import { importFromDbFile, importFromKeyFile, loadKeysMap } from '@/utils/kgg-keys';
+import type { UploadFile, UploadUserFile } from 'element-plus';
 
 // FIXME: 看起来不会触发这个验证提示？
 function validateJooxUUID(rule: any, value: any, callback: any) {
@@ -86,9 +117,12 @@ export default defineComponent({
     return {
       rules,
       saving: false,
+      importing: false,
       form: {
         jooxUUID: '',
       },
+      kggKeyCount: 0,
+      kggFileList: [] as UploadUserFile[],
       centerDialogVisible: false,
     };
   },
@@ -110,6 +144,8 @@ export default defineComponent({
   methods: {
     async resetForm() {
       this.form.jooxUUID = await storage.loadJooxUUID();
+      const map = await loadKeysMap();
+      this.kggKeyCount = map.size;
     },
 
     async cancel() {
@@ -122,6 +158,24 @@ export default defineComponent({
       await storage.saveJooxUUID(this.form.jooxUUID);
       this.saving = false;
       this.$emit('done');
+    },
+
+    async handleKggFileChange(uploadFile: UploadFile) {
+      if (!uploadFile.raw) return;
+      this.importing = true;
+      try {
+        const fileName = uploadFile.name.toLowerCase();
+        const result = fileName.endsWith('.key')
+          ? await importFromKeyFile(uploadFile.raw)
+          : await importFromDbFile(uploadFile.raw);
+        this.kggKeyCount = result.total;
+        ElMessage.success(`成功导入 ${result.added} 个新密钥，共 ${result.total} 个`);
+      } catch (e: any) {
+        ElMessage.error(`导入失败：${e?.message || e}`);
+      } finally {
+        this.importing = false;
+        this.kggFileList = [];
+      }
     },
   },
 });

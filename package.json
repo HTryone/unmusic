@@ -33,6 +33,7 @@
     "metaflac-js": "^1.0.5",
     "music-metadata": "7.9.0",
     "music-metadata-browser": "2.2.7",
+    "sql.js": "^1.14.1",
     "vue": "^3.5.40",
     "vue-router": "^4.6.4"
   },
@@ -40,6 +41,7 @@
     "@rollup/plugin-babel": "^6.1.0",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^20.19.43",
+    "@types/sql.js": "^1.4.11",
     "@vitejs/plugin-vue": "^5.2.4",
     "prettier": "2.5.1",
     "sass": "^1.101.3",

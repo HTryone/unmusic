@@ -50,6 +50,45 @@ interface WorkerTask {
   reject: (reason: any) => void;
 }
 
+// 主线程 -> Worker 的结构化克隆预检：Vue 响应式 Proxy / 非标准对象会导致
+// worker.postMessage 抛 DataCloneError（报错形如 `#<...> could not be cloned`）。
+// 发送前先逐字段卸掉 Proxy 并尝试克隆，失败则收集诊断并回退主线程执行。
+function cloneForWorker(value: any): any {
+  const sc = (globalThis as any).structuredClone;
+  const deproxy = (v: any) => {
+    try {
+      const raw = toRaw(v);
+      if (raw !== v) return raw;
+    } catch {
+      /* 非响应式对象，忽略 */
+    }
+    return v;
+  };
+  if (value === null || typeof value !== 'object') return value;
+  if (typeof File !== 'undefined' && value instanceof File) return value;
+  if (typeof Blob !== 'undefined' && value instanceof Blob) return value;
+  if (sc) {
+    try {
+      const cleaned: any = Array.isArray(value) ? [] : {};
+      for (const k of Object.keys(value)) {
+        cleaned[k] = deproxy(value[k]);
+      }
+      return sc(cleaned);
+    } catch {
+      const bad: string[] = [];
+      for (const k of Object.keys(value)) {
+        try {
+          sc(deproxy(value[k]));
+        } catch {
+          bad.push(`${k}(${(value[k] as any)?.constructor?.name})`);
+        }
+      }
+      throw new Error(`DataCloneError 预检失败，不可克隆字段: [${bad.join(', ')}]`);
+    }
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 class NativeWorkerPool {
   private workers: Worker[] = [];
   private idle: Worker[] = [];
@@ -87,7 +126,30 @@ class NativeWorkerPool {
       };
       this.handlers.set(id, handler);
       worker.addEventListener('message', handler);
-      worker.postMessage({ id, file: task.file, config: task.config });
+      try {
+        worker.postMessage({
+          id,
+          file: cloneForWorker(task.file),
+          config: cloneForWorker(task.config),
+        });
+      } catch (cloneErr) {
+        console.warn('[worker] 主线程→Worker 克隆失败，回退主线程执行', cloneErr);
+        worker.removeEventListener('message', handler);
+        this.handlers.delete(id);
+        this.idle.push(worker);
+        void this.runOnMainThread(task);
+        this.schedule();
+      }
+    }
+  }
+
+  private async runOnMainThread(task: WorkerTask) {
+    try {
+      const decryptMod = await import('@/decrypt');
+      const result = await decryptMod.Decrypt(task.file, task.config);
+      task.resolve(result);
+    } catch (err) {
+      task.reject(err instanceof Error ? err : new Error(String(err)));
     }
   }
 
