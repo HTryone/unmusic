@@ -65,6 +65,35 @@ import EditDialog from '@/component/EditDialog.vue';
 import { DownloadBlobMusic, FilenamePolicy, FilenamePolicies, RemoveBlobMusic, DirectlyWriteFile } from '@/utils/utils';
 import { GetImageFromURL, RewriteMetaToMp3, RewriteMetaToFlac, AudioMimeType, split_regex } from '@/decrypt/utils';
 import { parseBlob as metaParseBlob } from 'music-metadata-browser';
+import { DecryptResult } from '@/decrypt/entity';
+import { FileSystemDirectoryHandle } from '@/shims-fs';
+
+interface EditDialogOkData {
+  picture?: Blob;
+  title: string;
+  artist: string;
+  album: string;
+  albumartist: string;
+  genre: string;
+}
+
+// editing_data is always fully populated (initialized with empty strings); unlike DecryptResult,
+// its tag fields are required strings so the EditDialog template bindings type-check.
+interface EditData {
+  picture: string;
+  title: string;
+  artist: string;
+  album: string;
+  albumartist: string;
+  genre: string;
+  file: string;
+  blob: Blob;
+  ext: string;
+  mime: string;
+  rawExt?: string;
+  rawFilename?: string;
+  message?: string;
+}
 
 export default defineComponent({
   name: 'Home',
@@ -81,14 +110,17 @@ export default defineComponent({
     return {
       showConfigDialog: false,
       showEditDialog: false,
-      editing_data: { picture: '', title: '', artist: '', album: '', albumartist: '', genre: '', },
-      tableData: [],
+      editing_data: {
+        picture: '', title: '', artist: '', album: '', albumartist: '', genre: '',
+        file: '', blob: new Blob(), ext: '', mime: '',
+      } as EditData,
+      tableData: [] as DecryptResult[],
       playing_url: '',
       playing_auto: false,
       filename_policy: FilenamePolicy.ArtistAndTitle,
       instant_save: false,
       FilenamePolicies,
-      dir: null,
+      dir: null as FileSystemDirectoryHandle | null,
     };
   },
   watch: {
@@ -97,7 +129,7 @@ export default defineComponent({
     },
   },
   methods: {
-    async showSuccess(data) {
+    async showSuccess(data: DecryptResult) {
       if (this.instant_save) {
         await this.saveFile(data);
         RemoveBlobMusic(data);
@@ -114,12 +146,12 @@ export default defineComponent({
         window._paq.push(['trackEvent', 'Unlock', data.rawExt + ',' + data.mime, JSON.stringify(_rp_data)]);
       }
     },
-    showFail(errInfo, filename) {
+    showFail(errInfo: unknown, filename: string) {
       console.error(errInfo, filename);
       this.$notify.error({
         title: '出现问题',
         message:
-          errInfo +
+          String(errInfo) +
           '，' +
           filename +
           '，参考<a target="_blank" href="https://github.com/ix64/unlock-music/wiki/使用提示">使用提示</a>',
@@ -130,7 +162,7 @@ export default defineComponent({
         window._paq.push(['trackEvent', 'Error', String(errInfo), filename]);
       }
     },
-    changePlaying(url) {
+    changePlaying(url: string) {
       this.playing_url = url;
       this.playing_auto = true;
     },
@@ -154,7 +186,7 @@ export default defineComponent({
         }
       }, 300);
     },
-    async handleEdit(data) {
+    async handleEdit(data: EditDialogOkData) {
       this.showEditDialog = false;
       URL.revokeObjectURL(this.editing_data.file);
       if (data.picture) {
@@ -164,10 +196,10 @@ export default defineComponent({
       this.editing_data.title = data.title;
       this.editing_data.artist = data.artist;
       this.editing_data.album = data.album;
-      let writeSuccess = true;
+      let writeSuccess: boolean | undefined = true;
       let notifyMsg = '成功修改 ' + this.editing_data.title;
       try {
-        const musicMeta = await metaParseBlob(new Blob([this.editing_data.blob], { type: mime }));
+        const musicMeta = await metaParseBlob(new Blob([this.editing_data.blob], { type: this.editing_data.mime }));
         let imageInfo = undefined;
         if (this.editing_data.picture !== '') {
           imageInfo = await GetImageFromURL(this.editing_data.picture);
@@ -185,9 +217,9 @@ export default defineComponent({
         const buffer = Buffer.from(await this.editing_data.blob.arrayBuffer());
         const mime = AudioMimeType[this.editing_data.ext] || AudioMimeType.mp3;
         if (this.editing_data.ext === 'mp3') {
-          this.editing_data.blob = new Blob([RewriteMetaToMp3(buffer, newMeta, musicMeta)], { type: mime });
+          this.editing_data.blob = new Blob([RewriteMetaToMp3(buffer, newMeta, musicMeta) as BlobPart], { type: mime });
         } else if (this.editing_data.ext === 'flac') {
-          this.editing_data.blob = new Blob([RewriteMetaToFlac(buffer, newMeta, musicMeta)], { type: mime });
+          this.editing_data.blob = new Blob([RewriteMetaToFlac(buffer, newMeta, musicMeta) as BlobPart], { type: mime });
         } else {
           writeSuccess = undefined;
           notifyMsg = this.editing_data.ext + '类型文件暂时不支持修改音乐标签';
@@ -218,14 +250,14 @@ export default defineComponent({
       }
     },
 
-    async editFile(data) {
-      this.editing_data = data;
+    async editFile(data: DecryptResult) {
+      this.editing_data = data as EditData;
       const musicMeta = await metaParseBlob(this.editing_data.blob);
       this.editing_data.albumartist = musicMeta.common.albumartist || '';
       this.editing_data.genre = musicMeta.common.genre?.toString() || '';
       this.showEditDialog = true;
     },
-    async saveFile(data) {
+    async saveFile(data: DecryptResult) {
       if (this.dir) {
         await DirectlyWriteFile(data, this.filename_policy, this.dir);
         this.$notify({
@@ -253,10 +285,11 @@ export default defineComponent({
         return;
       }
       try {
-        this.dir = await window.showDirectoryPicker();
+        const dir = await window.showDirectoryPicker();
+        this.dir = dir;
         const test_filename = '__unlock_music_write_test.txt';
-        await this.dir.getFileHandle(test_filename, { create: true });
-        await this.dir.removeEntry(test_filename);
+        await dir.getFileHandle(test_filename, { create: true });
+        await dir.removeEntry(test_filename);
       } catch (e) {
         console.error(e);
       }
