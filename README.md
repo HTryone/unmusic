@@ -2,8 +2,8 @@
 
 在浏览器中解锁加密的音乐文件。所有解密运算都在你本地的浏览器里完成，**文件不会上传到任何服务器**。
 
-> 本仓库是个人复刻 / 本地化部署版本，基于开源项目 [Unlock Music](https://git.unlock-music.dev/um/web) 复刻而来。
-> 大批量转换建议使用原项目的 CLI 版本：[unlock-music/cli](https://git.unlock-music.dev/um/cli)。
+> 本仓库是个人复刻 / 本地化部署版本，基于 [Ting-fYuan/unlock_music](https://github.com/Ting-fYuan/unlock_music)（Unlock Music 原版 web 的 Vue 2 分支）迁移而来，已升级到 Vue 3 + Vite。
+> 大批量转换建议使用原项目的 CLI 版本（`unlock-music/cli`，原托管于 `git.unlock-music.dev`，当前暂不可访问）。
 
 ## 特性
 
@@ -124,6 +124,6 @@ npm run pretty     # 用 Prettier 格式化 src/ 下的代码
 
 ## 关于本项目
 
-本仓库基于 [Unlock Music](https://git.unlock-music.dev/um/web) 原项目（GPL-3.0）复刻；本仓库所用源码以 **MIT 许可证** 分发（见仓库内 `LICENSE` 文件，Copyright © 2019-2023 MengYX, © 2026 HTryone）。修改、再分发请保留原作者版权声明与许可证文本。
+本仓库基于 [Ting-fYuan/unlock_music](https://github.com/Ting-fYuan/unlock_music)（即 Unlock Music 原版 web 的 GitHub 镜像，Vue 2 版本；也是本项目的直接上游 / 迁移起点）迁移到 Vue 3 + Vite。其原始项目为 Unlock Music 团队（GPL-3.0；官方站点 `git.unlock-music.dev` 当前暂不可访问）。本仓库所用源码以 **MIT 许可证** 分发（见仓库内 `LICENSE` 文件，Copyright © 2019-2023 MengYX, © 2026 HTryone）。修改、再分发请保留原作者版权声明与许可证文本。
 
 技术栈：Vue 3 + Vite 5 + Element Plus + TypeScript（由原 Vue 2 + Vue CLI 版本迁移而来）。
