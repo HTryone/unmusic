@@ -21,7 +21,7 @@
 - [x] Moo 音乐格式 (.bkcmp3/.bkcflac/...)
 - [x] QQ 音乐 Tm 格式 (.tm0/.tm2/.tm3/.tm6)
 - [x] QQ 音乐新格式 (.mflac/.mgg/.mflac0/.mgg1/.mggl)
-- [x] <ruby>QQ 音乐海外版<rt>JOOX Music</rt></ruby> (.ofl_en)
+- [ ] <ruby>QQ 音乐海外版<rt>JOOX Music</rt></ruby> (.ofl_en) — 依赖 `joox-crypto` 已从 npm 下架，暂不支持
 - [x] 网易云音乐格式 (.ncm)
 - [x] 虾米音乐格式 (.xm)
 - [x] 酷我音乐格式 (.kwm)
@@ -50,8 +50,10 @@
 
 ### 自行构建
 
+> 技术栈：Vue 3 + Vite 5 + Element Plus + TypeScript（由原 Vue 2 + Vue CLI 迁移而来）。
+
 - 环境要求
-  - nodejs (v16.x)
+  - nodejs (v18.x 或更高，Vite 5 要求 Node 18+)
   - npm
 
 1. 获取项目源代码后安装相关依赖：
@@ -68,7 +70,7 @@
    ```
 
    - 构建后的产物可以在 `dist` 目录找到。
-   - 如果是用于开发，可以执行 `npm run serve`。
+   - 如果是用于开发，可以执行 `npm run dev`（等价于 `npm run serve`，均为 Vite 开发服务器）。
 
 3. 如需构建浏览器扩展，构建成功后还需要执行：
 
