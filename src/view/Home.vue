@@ -36,13 +36,13 @@
         </el-button>
 
         <el-tooltip class="item" effect="dark" placement="top-start">
-          <div slot="content">
+          <template #content>
             <span v-if="instant_save">工作模式: {{ dir ? '写入本地文件系统' : '调用浏览器下载' }}</span>
             <span v-else>
               当您使用此工具进行大量文件解锁的时候，建议开启此选项。<br />
               开启后，解锁结果将不会存留于浏览器中，防止内存不足。
             </span>
-          </div>
+          </template>
             <el-checkbox v-model="instant_save" type="success" border class="ml-2">立即保存</el-checkbox>
         </el-tooltip>
       </el-row>

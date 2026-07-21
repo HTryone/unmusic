@@ -2,7 +2,8 @@
   <el-upload :auto-upload="false" :on-change="addFile" :show-file-list="false" action="" drag multiple>
     <el-icon class="el-icon-upload"><Upload /></el-icon>
     <div class="el-upload__text">将文件拖到此处，或 <em>点击选择</em></div>
-    <div slot="tip" class="el-upload__tip">
+    <template #tip>
+      <div class="el-upload__tip">
       <div>
         仅在浏览器内对文件进行解锁，无需消耗流量
         <el-tooltip effect="dark" placement="top-start">
@@ -21,7 +22,8 @@
         </el-tooltip>
       </div>
     </div>
-    <transition name="el-fade-in"
+  </template>
+  <transition name="el-fade-in"
       ><!--todo: add delay to animation-->
       <el-progress
         v-show="progress_show"

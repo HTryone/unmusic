@@ -26,57 +26,43 @@
     </el-table-column>
     <el-table-column label="操作">
       <template #default="scope">
-        <el-button circle type="success" @click="handlePlay(scope.$index, scope.row)">
-          <el-icon><VideoPlay /></el-icon>
-        </el-button>
-        <el-button circle @click="handleDownload(scope.row)">
-          <el-icon><Download /></el-icon>
-        </el-button>
-        <el-button circle @click="handleEdit(scope.row)">
-          <el-icon><Edit /></el-icon>
-        </el-button>
-        <el-button circle type="danger" @click="handleDelete(scope.$index, scope.row)">
-          <el-icon><Delete /></el-icon>
-        </el-button>
+        <el-button :icon="VideoPlay" circle type="success" @click="handlePlay(scope.$index, scope.row)" />
+        <el-button :icon="Download" circle @click="handleDownload(scope.row)" />
+        <el-button :icon="Edit" circle @click="handleEdit(scope.row)" />
+        <el-button :icon="Delete" circle type="danger" @click="handleDelete(scope.$index, scope.row)" />
       </template>
     </el-table-column>
   </el-table>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { RemoveBlobMusic } from '@/utils/utils';
+<script lang="ts" setup>
 import { VideoPlay, Download, Edit, Delete } from '@element-plus/icons-vue';
+import { RemoveBlobMusic } from '@/utils/utils';
 
-export default defineComponent({
-  name: 'PreviewTable',
-  components: {
-    VideoPlay,
-    Download,
-    Edit,
-    Delete,
-  },
-  props: {
-    tableData: { type: Array, required: true },
-    policy: { type: Number, required: true },
-  },
+const props = defineProps<{
+  tableData: Array<any>;
+  policy: number;
+}>();
 
-  methods: {
-    handlePlay(index: number, row: any) {
-      this.$emit('play', row.file);
-    },
-    handleDelete(index: number, row: any) {
-      RemoveBlobMusic(row);
-      this.tableData.splice(index, 1);
-    },
-    handleDownload(row: any) {
-      this.$emit('download', row);
-    },
-    handleEdit(row: any) {
-      this.$emit('edit', row);
-    },
-  },
-});
+const emit = defineEmits<{
+  play: [file: string];
+  download: [row: any];
+  edit: [row: any];
+}>();
+
+function handlePlay(index: number, row: any) {
+  emit('play', row.file);
+}
+function handleDelete(index: number, row: any) {
+  RemoveBlobMusic(row);
+  props.tableData.splice(index, 1);
+}
+function handleDownload(row: any) {
+  emit('download', row);
+}
+function handleEdit(row: any) {
+  emit('edit', row);
+}
 </script>
 
 <style scoped></style>
