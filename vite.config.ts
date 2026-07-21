@@ -37,7 +37,11 @@ function emscriptenExports(): Plugin {
                 // Force ENVIRONMENT_IS_NODE to false regardless of whether a `process`
                 // polyfill is present, so the bundle always takes the web/worker path.
                 .replace(/typeof process\.versions\.node==="string"/g, 'false');
-              return { code: `${code}\nexport default ${t.varName};\n`, map: null };
+              // 浏览器/Worker 环境没有 __dirname/__filename。它们只出现在 emscripten
+              // 的脚本目录探测里，且所在分支在 ENVIRONMENT_IS_NODE 为 false 时不会真正
+              // 执行；显式声明为安全字面量，避免裸引用抛 ReferenceError。
+              const shim = 'var __dirname = "/";\nvar __filename = ".";\n';
+              return { code: `${shim}${code}\nexport default ${t.varName};\n`, map: null };
             }
           }
           return null;
