@@ -4,6 +4,7 @@ import { Decrypt as NcmCacheDecrypt } from '@/decrypt/ncmcache';
 import { Decrypt as XmDecrypt } from '@/decrypt/xm';
 import { Decrypt as QmcDecrypt } from '@/decrypt/qmc';
 import { Decrypt as QmcOjDecrypt } from '@/decrypt/qmc_oj';
+import { Decrypt as MusicexDecrypt } from '@/decrypt/musicex';
 import { Decrypt as QmcCacheDecrypt } from '@/decrypt/qmccache';
 import { Decrypt as KgmDecrypt } from '@/decrypt/kgm';
 import { Decrypt as KwmDecrypt } from '@/decrypt/kwm';
@@ -91,6 +92,9 @@ export async function Decrypt(file: FileInfo, config: Record<string, any>): Prom
     case 'mflac4': //QQ Music New Flac (STag 头部, 纯本地)
     case 'mgg4': //QQ Music New Ogg (STag 头部, 纯本地)
       rt_data = await QmcOjDecrypt(file.raw, raw.name, raw.ext);
+      break;
+    case 'musicex': //QQ Music 无内嵌密钥格式 (需 VIP Cookie + 代理调 API 取 ekey)
+      rt_data = await MusicexDecrypt(file.raw, raw.name, raw.ext);
       break;
     case 'tm2': // QQ Music IOS M4a
     case 'tm6': // QQ Music IOS M4a

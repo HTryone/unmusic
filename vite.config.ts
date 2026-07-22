@@ -173,5 +173,20 @@ export default defineConfig({
   server: {
     port: 8080,
     open: false,
+    // 开发期 musicex 解密代理：浏览器同源请求 /qq-api，由 vite 转发到 u.y.qq.com。
+    // 前端用 X-QQ-Cookie 头传 Cookie（浏览器禁止设 Cookie 头），这里转成真实 Cookie 头。
+    proxy: {
+      '/qq-api': {
+        target: 'https://u.y.qq.com',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            const cookie = (req.headers['x-qq-cookie'] as string | undefined) || '';
+            if (cookie) proxyReq.setHeader('Cookie', cookie);
+            proxyReq.removeHeader('x-qq-cookie');
+          });
+        },
+      },
+    },
   },
 });

@@ -269,7 +269,7 @@ function applyMask(buf: Uint8Array, mask: Uint8Array): void {
   for (let i = 32768; i < len; i++) buf[i] ^= mask[i % 32768];
 }
 
-function decryptV2Buffer(qmcBuf: Uint8Array, ekeyB64: string): Uint8Array {
+export function decryptV2Buffer(qmcBuf: Uint8Array, ekeyB64: string): Uint8Array {
   if (!ekeyB64) throw new Error('QMCv2 requires an ekey string');
   const derivedKey = qmcDeriveKey(ekeyB64);
   const out = qmcBuf.slice();
