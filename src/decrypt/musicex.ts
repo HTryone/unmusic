@@ -77,8 +77,12 @@ async function fetchEkey(
   fileMid: string,
   cookie: string,
   proxyBase: string,
+  settingsUin: string,
 ): Promise<string> {
-  const { uin, guid } = parseCookieFields(cookie);
+  const cookieFields = parseCookieFields(cookie);
+  // Cookie 可能不含 uin（如 QQ Connect 登录），回退到设置页手动填写的 QQ 号
+  const uin = (cookieFields.uin || settingsUin).replace(/^o/, '');
+  const guid = cookieFields.guid;
   const ext = fileMid.startsWith('F0') ? '.mflac' : '.mgg';
   const requestData = {
     comm: {
@@ -150,7 +154,8 @@ export async function Decrypt(file: Blob, raw_filename: string, raw_ext: string)
   }
 
   const proxyBase = (await storage.loadQQProxy()).trim() || '/qq-api';
-  const ekey = await fetchEkey(tail.songMid, tail.fileMid, cookie, proxyBase);
+  const settingsUin = (await storage.loadQQUin()).trim();
+  const ekey = await fetchEkey(tail.songMid, tail.fileMid, cookie, proxyBase, settingsUin);
 
   const cipherText = buf.slice(0, tail.audioLen);
   const audio = decryptV2Buffer(cipherText, ekey);

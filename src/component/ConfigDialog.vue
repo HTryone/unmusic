@@ -172,6 +172,31 @@ form :deep(textarea) {
 
       <section>
         <label>
+          <span>QQ 音乐 uin（QQ 号）</span>
+        </label>
+
+        <p class="item-desc">
+          部分登录方式（如 QQ 互联 / 微信登录）的 Cookie 不含 <code>uin</code>，而 vkey 接口需靠
+          <code>uin</code> 校验 VIP 权限；缺失时会返回 <code>result:104003</code> 且无法解密。
+          请在此填写你的<strong>QQ 号（数字）</strong>，留空则尝试从 Cookie 中读取。
+        </p>
+
+        <el-form-item prop="qqUin">
+          <el-input
+            type="text"
+            v-model="form.qqUin"
+            clearable
+            maxlength="20"
+            placeholder="你的 QQ 号，例如：123456789"
+          >
+          </el-input>
+        </el-form-item>
+
+        <p class="item-desc">当前状态：<b>{{ qqUinSet ? '已填写' : '未填写（将从 Cookie 读取）' }}</b>。</p>
+      </section>
+
+      <section>
+        <label>
           <span>QQ 音乐 API 代理地址</span>
         </label>
 
@@ -246,6 +271,7 @@ export default defineComponent({
       form: {
         jooxUUID: '',
         qqCookie: '',
+        qqUin: '',
         qqProxy: '',
       },
       kggKeyCount: 0,
@@ -270,6 +296,9 @@ export default defineComponent({
     qqProxySet(): boolean {
       return !!this.form.qqProxy && this.form.qqProxy.trim().length > 0;
     },
+    qqUinSet(): boolean {
+      return !!this.form.qqUin && this.form.qqUin.trim().length > 0;
+    },
   },
   async mounted() {
     await this.resetForm();
@@ -278,6 +307,7 @@ export default defineComponent({
     async resetForm() {
       this.form.jooxUUID = await storage.loadJooxUUID();
       this.form.qqCookie = await storage.loadQQCookie();
+      this.form.qqUin = await storage.loadQQUin();
       this.form.qqProxy = await storage.loadQQProxy();
       await this.refreshKggKeys();
     },
@@ -302,6 +332,7 @@ export default defineComponent({
       this.saving = true;
       await storage.saveJooxUUID(this.form.jooxUUID);
       await storage.saveQQCookie(this.form.qqCookie.trim());
+      await storage.saveQQUin(this.form.qqUin.trim());
       await storage.saveQQProxy(this.form.qqProxy.trim());
       this.saving = false;
       this.$emit('done');
