@@ -15,7 +15,8 @@ label {
   color: #aaa;
 }
 
-form :deep(input) {
+form :deep(input),
+form :deep(textarea) {
   font-family: 'Courier New', Courier, monospace;
 }
 
@@ -141,6 +142,58 @@ form :deep(input) {
           导入后本地解密，密钥仅存于本机浏览器，不上传。
         </p>
       </section>
+
+      <section>
+        <label>
+          <span>QQ 音乐 Cookie</span>
+        </label>
+
+        <p class="item-desc">
+          解密 <code>.musicex</code> 等<strong>无内嵌密钥</strong>的 QQ 音乐加密文件需要登录态 Cookie。
+          在浏览器打开 <code>y.qq.com</code> 并登录 VIP 账号，按
+          <code>F12</code> → 网络(Network) → 任意请求 → 复制请求头中的 <code>Cookie</code> 字段，粘贴到下方。
+          仅存于本机浏览器，不上传。
+        </p>
+
+        <el-form-item prop="qqCookie">
+          <el-input
+            type="textarea"
+            :rows="3"
+            v-model="form.qqCookie"
+            clearable
+            resize="vertical"
+            placeholder="粘贴 QQ 音乐 Cookie，例如：uin=o123456; qqmusic_key=xxx; psrf_access_token=xxx"
+          >
+          </el-input>
+        </el-form-item>
+
+        <p class="item-desc">当前状态：<b>{{ qqCookieSet ? '已保存' : '未设置' }}</b>。Cookie 含登录凭证，请勿分享；登出或改密后需重新粘贴。</p>
+      </section>
+
+      <section>
+        <label>
+          <span>QQ 音乐 API 代理地址</span>
+        </label>
+
+        <p class="item-desc">
+          浏览器受 CORS 限制无法直接调用 <code>u.y.qq.com</code>，需经代理转发。
+          部署一个 Cloudflare Worker（转发 <code>/cgi-bin/musicu.fcg</code> 并加 CORS 头）后，把其地址填到这里。
+          <br />
+          留空则默认走开发代理 <code>/qq-api</code>（仅 <code>npm run dev</code> 生效）。
+        </p>
+
+        <el-form-item prop="qqProxy">
+          <el-input
+            type="text"
+            v-model="form.qqProxy"
+            clearable
+            placeholder="https://your-worker.xxx.workers.dev （留空用开发代理 /qq-api）"
+          >
+          </el-input>
+        </el-form-item>
+
+        <p class="item-desc">当前状态：<b>{{ qqProxySet ? '已设置' : '未设置（用 /qq-api）' }}</b>。</p>
+      </section>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -192,6 +245,8 @@ export default defineComponent({
       importing: false,
       form: {
         jooxUUID: '',
+        qqCookie: '',
+        qqProxy: '',
       },
       kggKeyCount: 0,
       kggKeyIds: [] as string[],
@@ -213,9 +268,19 @@ export default defineComponent({
   async mounted() {
     await this.resetForm();
   },
+  computed: {
+    qqCookieSet(): boolean {
+      return !!this.form.qqCookie && this.form.qqCookie.trim().length > 0;
+    },
+    qqProxySet(): boolean {
+      return !!this.form.qqProxy && this.form.qqProxy.trim().length > 0;
+    },
+  },
   methods: {
     async resetForm() {
       this.form.jooxUUID = await storage.loadJooxUUID();
+      this.form.qqCookie = await storage.loadQQCookie();
+      this.form.qqProxy = await storage.loadQQProxy();
       await this.refreshKggKeys();
     },
 
@@ -238,6 +303,8 @@ export default defineComponent({
     async emitConfirm() {
       this.saving = true;
       await storage.saveJooxUUID(this.form.jooxUUID);
+      await storage.saveQQCookie(this.form.qqCookie.trim());
+      await storage.saveQQProxy(this.form.qqProxy.trim());
       this.saving = false;
       this.$emit('done');
     },
