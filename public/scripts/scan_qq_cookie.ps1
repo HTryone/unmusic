@@ -24,6 +24,14 @@ public class QMEx {
         string clean = line.Trim();
         if (clean.StartsWith("Cookie:")) clean = clean.Substring(7).Trim();
         if (clean.StartsWith("?")) clean = clean.Substring(1).Trim();
+        // 兜底: 内存里 cookie 字符串前可能粘了 ANSI 颜色码 / 控制字符 / 非 ASCII 字节
+        // 强制只保留可打印 ASCII (0x21-0x7E), 避免终端执行 ANSI 转义把后续内容"擦掉",
+        // 也避免把这些控制字符带进 X-QQ-Cookie 请求头被 QQ 服务器拒绝
+        var sb = new StringBuilder(clean.Length);
+        foreach (var ch in clean) {
+            if (ch >= 0x21 && ch <= 0x7E) sb.Append(ch);
+        }
+        clean = sb.ToString();
         if (clean.Contains("qqmusic_key=") || clean.Contains("qm_keyst=")) return clean;
         return "";
     }
