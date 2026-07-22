@@ -63,11 +63,6 @@ form :deep(textarea) {
   font-family: 'Courier New', Courier, monospace;
 }
 
-:deep(.um-config-dialog) {
-  max-width: 90%;
-  width: 40em;
-}
-
 .kgg-key-list {
   margin-top: 0.6em;
   border: 1px solid #444;
@@ -159,6 +154,20 @@ form :deep(textarea) {
   // KGG 密钥 ID：亮蓝，暗底清晰
   .kgg-key-list code {
     color: #9cc9ff;
+  }
+}
+</style>
+
+<!-- 非 scoped：直接命中被 Teleport 到 body 的 .el-dialog 本体，覆盖 Element Plus 的内联 width:50% -->
+<style lang="scss">
+.um-config-dialog {
+  width: 60% !important;
+}
+// 窄屏下放宽到 90%，内容区不再局促
+@media (max-width: 768px) {
+  .um-config-dialog {
+    width: 90vw !important;
+    max-width: 90vw !important;
   }
 }
 </style>

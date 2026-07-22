@@ -9,17 +9,17 @@
         </el-image>
       </template>
     </el-table-column>
-    <el-table-column label="歌曲">
+    <el-table-column label="歌曲" show-overflow-tooltip>
       <template #default="scope">
         <span>{{ scope.row.title }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="歌手">
+    <el-table-column label="歌手" show-overflow-tooltip>
       <template #default="scope">
         <p>{{ scope.row.artist }}</p>
       </template>
     </el-table-column>
-    <el-table-column label="专辑">
+    <el-table-column label="专辑" show-overflow-tooltip>
       <template #default="scope">
         <p>{{ scope.row.album }}</p>
       </template>

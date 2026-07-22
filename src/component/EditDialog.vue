@@ -1,4 +1,4 @@
-<style scoped>
+<style scoped lang="scss">
 label {
   cursor: pointer;
   line-height: 1.2;
@@ -22,6 +22,19 @@ form :deep(input) {
 :deep(.um-edit-dialog) {
   max-width: 90%;
   width: 30em;
+}
+// 窄屏下按视口宽度放宽对话框，避免内容区过窄
+@media (max-width: 768px) {
+  :deep(.um-edit-dialog) {
+    width: 92vw;
+    max-width: 92vw;
+  }
+}
+@media (max-width: 480px) {
+  :deep(.um-edit-dialog) {
+    width: 96vw;
+    max-width: 96vw;
+  }
 }
 
 /* 暗色模式适配 */

@@ -28,6 +28,8 @@
 - [x] 渐进式 Web 应用 (PWA)，可离线安装
 - [x] 多线程解密（Web Worker 池）
 - [x] 写入与编辑元信息、专辑封面
+- [x] 深色模式（跟随系统 `prefers-color-scheme`，设置页等暗色配色已优化）
+- [x] 小屏 / 移动端响应式布局（窄屏自适应；解密设定弹窗宽屏约占 60% / 窄屏约占 90%）
 
 ## 目录结构
 
@@ -85,8 +87,7 @@ npm run type-check # 类型检查（vue-tsc）
 
 ## 已知限制
 
-- **QQ 音乐 STag 格式暂不支持**：2023 年底 QQ 音乐将加密从 QTag 升级为 STag，密钥存放在客户端本地数据库而非文件内，Web 端无法获取。
-  - 解决：将 QQ 音乐客户端降级到 Windows `v19.43-` 或 Android `v11.5.x-` 后再导出。
+- **QQ 音乐 musicex 格式需 VIP Cookie + 代理**：musicex（文件尾 `musicex\0`，部分下载文件挂 `.mflac`/`.mgg` 后缀）密钥不在文件内，须在「解锁设定」填入 VIP Cookie 与 API 代理地址（设置页提供 `scan_qq_cookie` 脚本与 `qq-proxy.js` 下载）。STag / QTag 格式已可纯本地解密，无需 Cookie。
 - **必须走 HTTP 服务器**：ES 模块在 `file://` 协议下受 CORS 限制，不能直接双击 `index.html` 打开。请用上面的启动脚本或任意静态服务器访问。
 
 ## 参与修改 / 开发者指南

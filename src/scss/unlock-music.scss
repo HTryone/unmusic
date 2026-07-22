@@ -24,3 +24,48 @@
     padding: 10px;
   }
 }
+
+/* ===== 小屏（手机 / 平板）布局适配 ===== */
+// 平板及以下：整体左右留白，避免内容贴边；上传区与音频控件自适应宽度；
+// 控制栏的按钮 / 选项允许换行并保留间距，不再被挤成一团。
+@media (max-width: 768px) {
+  #app {
+    padding-top: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  // 拖拽上传区占满宽度，防止固定宽度在小屏溢出
+  .el-upload,
+  .el-upload-dragger {
+    width: 100%;
+  }
+  #app-control {
+    .el-row {
+      flex-wrap: wrap;
+      align-items: center;
+      row-gap: 10px;
+      column-gap: 12px;
+      justify-content: flex-start;
+    }
+    // 第一行“歌曲命名格式”标签与 radio 间距收紧
+    > .el-row:first-child {
+      row-gap: 6px;
+    }
+  }
+  audio {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// 手机竖屏：字号略缩、留白再收紧
+@media (max-width: 480px) {
+  #app {
+    font-size: 13px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  #app-footer {
+    padding: 0 2px;
+  }
+}
