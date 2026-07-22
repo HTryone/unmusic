@@ -253,4 +253,177 @@
       padding: 10px;
     }
   }
+
+  // DIALOG 补全
+  .el-dialog{
+    &__headerbtn{
+      .el-dialog__close{
+        color: $dark-text-info;
+        &:hover{
+          color: $dark-text-main;
+        }
+      }
+    }
+    .el-dialog__title{
+      color: lighten(black, 95%);
+    }
+    // overlay 遮罩
+    .el-overlay{
+      background-color: rgba(0,0,0,0.6);
+    }
+  }
+
+  // DIVIDER
+  .el-divider{
+    border-color: $dark-border;
+    background-color: $dark-border;
+    .el-divider__text{
+      color: $dark-text-info;
+      background-color: $dark-bg;
+    }
+  }
+
+  // TEXTAREA
+  .el-textarea{
+    .el-textarea__inner{
+      color: $dark-text-main;
+      background-color: $dark-btn-bg;
+      border-color: $dark-border;
+      &::placeholder{
+        color: lighten(black, 45%);
+      }
+      &:focus{
+        border-color: $blue;
+      }
+    }
+  }
+
+  // INPUT 补全（placeholder + wrapper）
+  .el-input{
+    &__wrapper{
+      background-color: $dark-btn-bg;
+      box-shadow: 0 0 0 1px $dark-border inset;
+      &:hover{
+        box-shadow: 0 0 0 1px $dark-border-highlight inset;
+      }
+      &.is-focus{
+        box-shadow: 0 0 0 1px $blue inset;
+      }
+    }
+    &__inner::placeholder{
+      color: lighten(black, 45%);
+    }
+    &__prefix,
+    &__suffix{
+      color: $dark-text-info;
+    }
+  }
+
+  // FORM LABEL
+  .el-form-item{
+    > label{
+      color: $dark-text-main;
+    }
+  }
+
+  // SELECT 下拉
+  .el-select{
+    .el-input__wrapper{
+      background-color: $dark-btn-bg;
+    }
+    .el-select-dropdown{
+      background-color: $dark-dialog-bg;
+      border-color: $dark-border;
+      .el-select-dropdown__item{
+        color: $dark-text-main;
+        &.hover,
+        &:hover{
+          background-color: $dark-btn-bg-highlight;
+        }
+        &.is-selected{
+          color: $blue;
+        }
+      }
+    }
+  }
+
+  // SWITCH
+  .el-switch{
+    .el-switch__core{
+      border-color: $dark-border;
+      background-color: $dark-btn-bg;
+    }
+    &.is-checked .el-switch__core{
+      border-color: $blue;
+      background-color: $blue;
+    }
+  }
+
+  // TAG / BADGE
+  .el-tag{
+    --el-tag-bg-color: #{$dark-btn-bg};
+    --el-tag-border-color: #{$dark-border};
+    --el-tag-text-color: #{$dark-text-main};
+  }
+  .el-badge__content{
+    border-color: $dark-bg;
+  }
+
+  // FOOTER
+  #app-footer{
+    color: $dark-text-info;
+    a{
+      color: darken($dark-color-link, 15%);
+      &:hover{ color: $dark-color-link; }
+    }
+  }
+
+  // SCROLLBAR（Webkit）
+  * {
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: $dark-border-highlight;
+      border-radius: 4px;
+      &:hover {
+        background: lighten(black, 40%);
+      }
+    }
+  }
+
+  // PAGE 主区域补色
+  #app-control{
+    color: $dark-text-main;
+  }
+
+  // NOTIFICATION 补全
+  .el-notification{
+    &__closeBtn{
+      color: $dark-text-info;
+      &:hover{ color: $dark-text-main; }
+    }
+  }
+
+  // MESSAGE BOX
+  .el-message-box{
+    background-color: $dark-dialog-bg;
+    .el-message-box__title{
+      color: $dark-text-main;
+    }
+    .el-message-box__message{
+      color: $dark-text-main;
+    }
+    .el-message-box__btns{
+      .el-button--default{
+        background-color: $dark-btn-bg;
+        border-color: $dark-border;
+        color: $dark-text-main;
+      }
+    }
+  }
 }

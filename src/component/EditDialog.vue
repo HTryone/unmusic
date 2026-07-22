@@ -23,6 +23,16 @@ form :deep(input) {
   max-width: 90%;
   width: 30em;
 }
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .item-desc {
+    color: lighten(black, 60%);
+  }
+  .item-desc a {
+    color: lighten(black, 55%);
+  }
+}
 </style>
 
 <template>

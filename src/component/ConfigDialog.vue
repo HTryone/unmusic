@@ -1,4 +1,4 @@
-<style scoped>
+<style scoped lang="scss">
 label {
   cursor: pointer;
   line-height: 1.2;
@@ -106,6 +106,43 @@ form :deep(textarea) {
   color: #9ad;
   word-break: break-all;
   margin-right: 0.5em;
+}
+
+/* ===== 暗色模式适配 ===== */
+@media (prefers-color-scheme: dark) {
+  // 分组标题（柔白，加粗）
+  section > label > span {
+    color: #e8e8e8;
+    font-weight: bold;
+    border-bottom-color: lighten(black, 28%);
+  }
+  section {
+    border-bottom-color: lighten(black, 20%);
+  }
+  // 描述注释（提白一档）
+  .item-desc {
+    color: lighten(black, 90%);
+  }
+  .item-desc a {
+    color: lighten(black, 65%);
+  }
+  .item-desc b {
+    color: #85ce61;
+  }
+  .item-desc code {
+    background: #000;
+    color: #e06c75;
+  }
+  // KGG 密钥列表
+  .kgg-key-list {
+    border-color: lighten(black, 28%);
+  }
+  .kgg-key-list-header {
+    color: lighten(black, 70%);
+  }
+  .kgg-key-list li {
+    border-bottom-color: lighten(black, 20%);
+  }
 }
 </style>
 
