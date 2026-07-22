@@ -110,38 +110,55 @@ form :deep(textarea) {
 
 /* ===== 暗色模式适配 ===== */
 @media (prefers-color-scheme: dark) {
-  // 分组标题（柔白，加粗）
+  // 分组标题（柔白加粗，分隔线提亮到清晰可辨）
   section > label > span {
-    color: #e8e8e8;
+    color: #ececec;
     font-weight: bold;
-    border-bottom-color: lighten(black, 28%);
+    border-bottom-color: lighten(black, 36%);
   }
   section {
-    border-bottom-color: lighten(black, 20%);
+    border-bottom-color: lighten(black, 28%);
   }
-  // 描述注释（提白一档）
+  // 描述注释（明亮舒适阅读）
   .item-desc {
     color: lighten(black, 90%);
   }
   .item-desc a {
-    color: lighten(black, 65%);
+    color: lighten(black, 72%);
   }
+  // 状态词：成功绿，夜间醒目
   .item-desc b {
-    color: #85ce61;
+    color: #8be36a;
   }
+  // 行内代码块：近黑底（略提白）+ 亮青字，黑底辨识度最高
   .item-desc code {
-    background: #000;
-    color: #e06c75;
+    background: lighten(black, 10%);
+    color: #5eead4;
   }
-  // KGG 密钥列表
+  // 脚本下载链接：暗底提亮蓝，按钮感醒目
+  .item-desc .script-link {
+    border-color: #79bbff;
+    background: rgba(121, 187, 255, 0.14);
+    color: #90c5ff;
+  }
+  .item-desc .script-link:hover {
+    background: #409eff;
+    color: #fff;
+    border-color: #409eff;
+  }
+  // KGG 密钥列表：边框/分隔线提亮，结构清晰
   .kgg-key-list {
-    border-color: lighten(black, 28%);
+    border-color: lighten(black, 36%);
   }
   .kgg-key-list-header {
-    color: lighten(black, 70%);
+    color: lighten(black, 80%);
   }
   .kgg-key-list li {
-    border-bottom-color: lighten(black, 20%);
+    border-bottom-color: lighten(black, 26%);
+  }
+  // KGG 密钥 ID：亮蓝，暗底清晰
+  .kgg-key-list code {
+    color: #9cc9ff;
   }
 }
 </style>
