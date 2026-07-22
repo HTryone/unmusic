@@ -179,6 +179,9 @@ export default defineConfig({
       '/qq-api': {
         target: 'https://u.y.qq.com',
         changeOrigin: true,
+        // 前端请求 /qq-api/cgi-bin/musicu.fcg，必须剥掉 /qq-api 前缀再转发，
+        // 否则真实路径变成 u.y.qq.com/qq-api/cgi-bin/musicu.fcg → 404
+        rewrite: (path) => path.replace(/^\/qq-api/, ''),
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req) => {
             const cookie = (req.headers['x-qq-cookie'] as string | undefined) || '';
