@@ -65,7 +65,7 @@ function parseCookieFields(cookie: string): { uin: string; guid: string } {
     const v = part.slice(idx + 1).trim();
     if (k) map[k] = v;
   }
-  let uin = map['qqmusic_uin'] || map['uin'] || '';
+  let uin = map['qqmusic_uin'] || map['uin'] || map['qm_hideuin'] || '';
   uin = uin.replace(/^o/, ''); // 去除 Tencent uin 可能的前导 'o'
   const guid = map['qqmusic_guid'] || map['guid'] || '';
   return { uin, guid };
