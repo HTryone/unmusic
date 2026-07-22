@@ -264,17 +264,15 @@ export default defineComponent({
         }
       },
     },
-  },
-  async mounted() {
-    await this.resetForm();
-  },
-  computed: {
     qqCookieSet(): boolean {
       return !!this.form.qqCookie && this.form.qqCookie.trim().length > 0;
     },
     qqProxySet(): boolean {
       return !!this.form.qqProxy && this.form.qqProxy.trim().length > 0;
     },
+  },
+  async mounted() {
+    await this.resetForm();
   },
   methods: {
     async resetForm() {
