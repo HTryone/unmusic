@@ -10,8 +10,6 @@ import { Decrypt as KgmDecrypt } from '@/decrypt/kgm';
 import { Decrypt as KwmDecrypt } from '@/decrypt/kwm';
 import { Decrypt as RawDecrypt } from '@/decrypt/raw';
 import { Decrypt as TmDecrypt } from '@/decrypt/tm';
-// joox-crypto package was removed from npm; JOOX format no longer supported
-// import { Decrypt as JooxDecrypt } from '@/decrypt/joox';
 import { Decrypt as XimalayaDecrypt } from './ximalaya';
 import { Decrypt as KggDecrypt } from './kgg';
 import { DecryptResult, FileInfo } from '@/decrypt/entity';
@@ -137,10 +135,6 @@ export async function Decrypt(file: FileInfo, config: Record<string, any>): Prom
     case 'kgg.flac':
       rt_data = await KggDecrypt(file.raw, raw.name, raw.ext);
       break;
-    // joox-crypto package was removed from npm; JOOX format no longer supported
-    // case 'ofl_en':
-    //   rt_data = await JooxDecrypt(file.raw, raw.name, raw.ext);
-    //   break;
     case 'x2m':
     case 'x3m':
       rt_data = await XimalayaDecrypt(file.raw, raw.name, raw.ext);

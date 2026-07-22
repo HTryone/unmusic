@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>解锁音乐使用提示</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --text: #333;
+      --accent: #409eff;
+      --card-bg: #fff;
+      --border: #e4e7ed;
+      --code-bg: #f2f4f7;
+      --success: #67c23a;
+      --warning: #e6a23c;
+      --tag-bg: #f2f6fc;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+    .subtitle {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+    h2 {
+      font-size: 1.3rem;
+      margin: 2rem 0 1rem;
+      padding-left: 0.75rem;
+      border-left: 4px solid var(--accent);
+      color: #2c3e50;
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin: 1.5rem 0 0.75rem;
+      color: #34495e;
+    }
+    p { margin-bottom: 0.75rem; }
+    code {
+      background: var(--code-bg);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.9em;
+      color: #e06c75;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .format-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .format-tag {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      padding: 0.25em 0.7em;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.95em;
+      color: #476582;
+    }
+    .step {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      margin: 0.75rem 0;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .step-content { flex: 1; }
+    ul, ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+    li { margin-bottom: 0.35rem; }
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    .alert-success {
+      background: #f0f9eb;
+      border: 1px solid #c2e7b0;
+      color: #3c7d24;
+    }
+    .alert-warning {
+      background: #fdf6ec;
+      border: 1px solid #f5dab1;
+      color: #b87e14;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .dl { margin: 0.75rem 0; }
+    .dl a {
+      display: inline-block;
+      margin: 0.3rem 0.8rem 0.3rem 0;
+      padding: 6px 14px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .dl a:hover { background: #66b1ff; text-decoration: none; }
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: #999;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>解锁音乐使用提示</h1>
+  <p class="subtitle">纯浏览器端加密音乐解密工具 — 解密全在本地完成，不上传任何文件。</p>
+
+  <h2>支持格式</h2>
+  <div class="format-list">
+    <span class="format-tag">.ncm</span>
+    <span class="format-tag">.qmc0 / .qmc2 / .qmc3 / .qmc4 / .qmc6 / .qmc8</span>
+    <span class="format-tag">.mflac / .mgg</span>
+    <span class="format-tag">.mflac2 / .mgg2 / .mflac4 / .mgg4</span>
+    <span class="format-tag">.musicex</span>
+    <span class="format-tag">.kgm</span>
+    <span class="format-tag">.kgma</span>
+    <span class="format-tag">.kgg / .kgg.flac</span>
+    <span class="format-tag">.vpr</span>
+    <span class="format-tag">.tkm</span>
+    <span class="format-tag">.bkc</span>
+    <span class="format-tag">.mogg</span>
+    <span class="format-tag">.ygg</span>
+  </div>
+
+  <h2>① 大部分格式：拖入即用</h2>
+  <p>打开网页，把加密音乐文件拖入页面即可，无需任何设置。适用：<code>.ncm</code>（网易云）、<code>.kgm</code>、<code>.mflac/.mgg</code>、<code>.qmc*</code> 等绝大多数格式。</p>
+
+  <h2>② QQ 音乐 musicex：先填 Cookie + 代理</h2>
+  <p><code>.musicex</code> 的解密密钥不在文件里，需要你的 VIP 登录态才能拿到。按下面顺序操作：</p>
+  <div class="card">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content"><strong>登录 QQ 音乐 VIP</strong> — 浏览器打开 <code>y.qq.com</code> 并登录你的 QQ 音乐 VIP 账号。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content"><strong>拿到 Cookie</strong> — 二选一：<br/>
+        · 手动：按 <code>F12</code> → 网络 → 随便点个请求 → 请求头里复制 <code>Cookie</code> 整行。<br/>
+        · 一键（Windows）：下载下面的脚本，双击 <code>.bat</code> 从客户端内存提取，复制输出的 <code>cookie</code>。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content"><strong>填写设置</strong> — 点右上角齿轮进入设置页：把 Cookie 粘到「QQ 音乐 Cookie」框；若提示 <code>104003</code> 缺 <code>uin</code>，再把 QQ 号填到「QQ 音乐 uin（QQ 号）」框。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content"><strong>填代理地址</strong> — 开发调试（<code>npm run serve</code>）时内置代理可留空，<b>其余情况（含本地使用）都需填</b> Cloudflare Worker 地址（见下方「部署代理」）。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content"><strong>拖入解密</strong> — 返回主页，把 <code>.musicex</code> 文件拖入页面即开始解密。</div>
+    </div>
+  </div>
+
+  <h3>一键取 Cookie（Windows 客户端，可选）</h3>
+  <p>需先打开 QQ 音乐客户端并登录 VIP、播过一首 VIP 歌。双击 <code>scan_qq_cookie.bat</code>（脚本要和同目录的 <code>.ps1</code> 放一起），复制输出的 <code>cookie</code> 粘进设置页即可。<b>脚本只扫本机内存，不联网、不上传</b>，与手动 F12 复制等效。</p>
+  <p class="dl">
+    <a href="scripts/scan_qq_cookie.bat" download>&#11015; 下载 scan_qq_cookie.bat</a>
+    <a href="scripts/scan_qq_cookie.ps1" download>&#11015; 下载 scan_qq_cookie.ps1</a>
+  </p>
+
+  <h3>部署代理</h3>
+  <p>解密 musicex 需要一个代理转发（开发调试 npm run serve 除外）。下载脚本部署到 Cloudflare Workers，再把地址填到设置页即可。</p>
+  <p class="dl"><a href="scripts/qq-proxy.js" download>&#11015; 下载 qq-proxy.js</a></p>
+  <div class="card">
+    <ol>
+      <li>登录 <a href="https://workers.cloudflare.com/" target="_blank">Cloudflare Workers</a>，新建一个 Worker。</li>
+      <li>把 <code>qq-proxy.js</code> 内容粘贴进去，保存并部署，得到形如 <code>https://xxx.workers.dev</code> 的地址。</li>
+      <li>把该地址填到设置页「QQ 音乐 API 代理地址」框（例如 <code>https://unmusic-proxy.xianshenghu363.workers.dev</code>）。</li>
+    </ol>
+  </div>
+
+  <h2>③ 酷狗 KGG v5：先导入密钥</h2>
+  <p>KGG 的密钥存在酷狗客户端里，需导入后才能解密。</p>
+  <div class="card">
+    <ol>
+      <li><strong>拿到密钥</strong> — 以下任一来源：酷狗本地的 <code>KGMusicV3.db</code>、OpenConverter 的 <code>kgg.keys</code>，或直接导出 <code>.key</code> 文件（格式 <code>keyId$ekey</code>）。</li>
+      <li><strong>导入密钥</strong> — 设置页「酷狗 KGG v5 密钥」处，拖入 <code>.db</code> / <code>.key</code> 文件。</li>
+      <li><strong>拖入解密</strong> — 首页拖入 <code>.kgg</code> 文件即自动解密。</li>
+    </ol>
+  </div>
+  <div class="alert alert-warning">
+    <strong>&#9888;</strong> 密钥与本账号绑定，需同一酷狗账号下载的文件才能解密。
+  </div>
+
+  <h2>常见问题</h2>
+  <h3>解密失败，提示 104003？</h3>
+  <p>Cookie 里缺少 <code>uin</code>，到设置页「QQ 音乐 uin（QQ 号）」框填上你的 QQ 号即可。</p>
+
+  <h3>我的文件安全吗？</h3>
+  <p>所有解密都在你的浏览器本地完成，不会上传任何文件到服务器。</p>
+
+  <h3>能离线使用吗？</h3>
+  <p>可以。访问过一次后资源会自动缓存，断网也能用。</p>
+
+  <h3>哪些格式暂不支持？</h3>
+  <p><code>.mflach</code> / <code>.xmf</code> 等网页版暂不支持，请用 <a href="https://git.unlock-music.dev/um/cli" target="_blank">CLI 版本</a>。</p>
+
+  <h2>关于</h2>
+  <p>基于 <a href="https://github.com/ix64/unlock-music" target="_blank">unlock-music</a> 维护，MIT 协议。<br/>个人复刻版：<a href="https://github.com/HTryone/unmusic" target="_blank">HTryone/unmusic</a></p>
+  <p>&copy; 2026 HTryone · <a href="https://github.com/HTryone/unmusic/blob/master/LICENSE" target="_blank">MIT License</a></p>
+
+  <div class="footer">
+    Unlock Music Local Edition &mdash; 解密全在本地，放心使用。
+  </div>
+</body>
+</html>

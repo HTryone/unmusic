@@ -4,15 +4,58 @@ label {
   line-height: 1.2;
   display: block;
 }
+/* 分组标题：深黑加粗 + 下分隔线，与注释明显区分 */
+section > label > span {
+  display: block;
+  font-weight: 700;
+  font-size: 15px;
+  color: #1f1f1f;
+  padding-bottom: 0.3em;
+  margin-bottom: 0.1em;
+  border-bottom: 1px solid #ebeef5;
+}
+/* 各组之间留间隔并加淡分隔，分类更清楚 */
+section {
+  padding: 0.5em 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+section:last-child {
+  border-bottom: none;
+}
 .item-desc {
-  color: #aaa;
+  color: #555;
   font-size: small;
   display: block;
-  line-height: 1.2;
-  margin-top: 0.2em;
+  line-height: 1.5;
+  margin-top: 0.35em;
 }
 .item-desc a {
-  color: #aaa;
+  color: #555;
+}
+.item-desc code {
+  font-family: 'Courier New', Courier, monospace;
+  background: #f4f4f5;
+  color: #c7254e;
+  padding: 0 4px;
+  border-radius: 3px;
+}
+.item-desc .script-link {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid #409eff;
+  border-radius: 4px;
+  background: rgba(64, 158, 255, 0.08);
+  color: #409eff;
+  text-decoration: none;
+  font-size: 12px;
+  line-height: 1.5;
+  transition: all 0.2s;
+  margin-right: 6px;
+}
+.item-desc .script-link:hover {
+  background: #409eff;
+  color: #fff;
+  text-decoration: none;
 }
 
 form :deep(input),
@@ -69,27 +112,6 @@ form :deep(textarea) {
 <template>
   <el-dialog v-model="visible" title="解密设定" class="um-config-dialog" center>
     <el-form ref="form" :rules="rules" status-icon :model="form" label-width="0">
-      <section>
-        <label>
-          <span>
-            JOOX Music ·
-            <Ruby caption="Unique Device Identifier">设备唯一识别码</Ruby>
-          </span>
-          <el-form-item prop="jooxUUID">
-            <el-input type="text" v-model="form.jooxUUID" clearable maxlength="32" show-word-limit> </el-input>
-          </el-form-item>
-        </label>
-
-        <p class="item-desc">
-          下载该加密文件的 JOOX 应用所记录的设备唯一识别码。
-          <br />
-          参见：
-          <a href="https://github.com/unlock-music/joox-crypto/wiki/%E8%8E%B7%E5%8F%96%E8%AE%BE%E5%A4%87-UUID">
-            获取设备 UUID · unlock-music/joox-crypto Wiki</a
-          >。
-        </p>
-      </section>
-
       <section>
         <label>
           <span>酷狗 KGG v5 密钥</span>
@@ -149,9 +171,8 @@ form :deep(textarea) {
         </label>
 
         <p class="item-desc">
-          解密 <code>.musicex</code> 等<strong>无内嵌密钥</strong>的 QQ 音乐加密文件需要登录态 Cookie。
-          在浏览器打开 <code>y.qq.com</code> 并登录 VIP 账号，按
-          <code>F12</code> → 网络(Network) → 任意请求 → 复制请求头中的 <code>Cookie</code> 字段，粘贴到下方。
+          解密 <code>.musicex</code> 等无内嵌密钥格式的 QQ 音乐加密文件时需要 VIP Cookie。
+          浏览器打开 <code>y.qq.com</code> → 按 <code>F12</code> → 网络 → 随便一个请求 → 复制请求头的 <code>Cookie</code> → 粘贴到下方。
           仅存于本机浏览器，不上传。
         </p>
 
@@ -162,12 +183,18 @@ form :deep(textarea) {
             v-model="form.qqCookie"
             clearable
             resize="vertical"
-            placeholder="粘贴 QQ 音乐 Cookie，例如：uin=o123456; qqmusic_key=xxx; psrf_access_token=xxx"
+            placeholder="粘贴 Cookie，包含 qqmusic_key / qqmusic_uin 即可"
           >
           </el-input>
         </el-form-item>
 
-        <p class="item-desc">当前状态：<b>{{ qqCookieSet ? '已保存' : '未设置' }}</b>。Cookie 含登录凭证，请勿分享；登出或改密后需重新粘贴。</p>
+        <p class="item-desc">当前状态：<b>{{ qqCookieSet ? '已保存' : '未设置' }}</b>。</p>
+
+        <p class="item-desc">
+          <a class="script-link" :href="scriptHref('scan_qq_cookie.bat')" download>下载 scan_qq_cookie.bat</a>
+          <a class="script-link" :href="scriptHref('scan_qq_cookie.ps1')" download>下载 scan_qq_cookie.ps1</a>
+          <span>嫌手动复制 Cookie 麻烦，可用它一键从 QQ 音乐客户端提取。<b>两个文件需放在同一目录</b>（.bat 双击后会调用同目录的 .ps1）。</span>
+        </p>
       </section>
 
       <section>
@@ -176,9 +203,7 @@ form :deep(textarea) {
         </label>
 
         <p class="item-desc">
-          部分登录方式（如 QQ 互联 / 微信登录）的 Cookie 不含 <code>uin</code>，而 vkey 接口需靠
-          <code>uin</code> 校验 VIP 权限；缺失时会返回 <code>result:104003</code> 且无法解密。
-          请在此填写你的<strong>QQ 号（数字）</strong>，留空则尝试从 Cookie 中读取。
+          解密失败提示 <code>104003</code> 时填 QQ 号，否则留空即可。
         </p>
 
         <el-form-item prop="qqUin">
@@ -192,7 +217,7 @@ form :deep(textarea) {
           </el-input>
         </el-form-item>
 
-        <p class="item-desc">当前状态：<b>{{ qqUinSet ? '已填写' : '未填写（将从 Cookie 读取）' }}</b>。</p>
+        <p class="item-desc">当前状态：<b>{{ qqUinSet ? '已填写' : '未填写' }}</b>。</p>
       </section>
 
       <section>
@@ -201,10 +226,7 @@ form :deep(textarea) {
         </label>
 
         <p class="item-desc">
-          浏览器受 CORS 限制无法直接调用 <code>u.y.qq.com</code>，需经代理转发。
-          部署一个 Cloudflare Worker（转发 <code>/cgi-bin/musicu.fcg</code> 并加 CORS 头）后，把其地址填到这里。
-          <br />
-          留空则默认走开发代理 <code>/qq-api</code>（仅 <code>npm run dev</code> 生效）。
+          直接填 <code>https://unmusic-proxy.xianshenghu363.workers.dev</code> 即可；想用自己的，按使用提示里的「部署代理」教程自行部署后替换。
         </p>
 
         <el-form-item prop="qqProxy">
@@ -212,12 +234,16 @@ form :deep(textarea) {
             type="text"
             v-model="form.qqProxy"
             clearable
-            placeholder="https://your-worker.xxx.workers.dev （留空用开发代理 /qq-api）"
+            placeholder="https://unmusic-proxy.xianshenghu363.workers.dev"
           >
           </el-input>
         </el-form-item>
 
-        <p class="item-desc">当前状态：<b>{{ qqProxySet ? '已设置' : '未设置（用 /qq-api）' }}</b>。</p>
+        <p class="item-desc">当前状态：<b>{{ qqProxySet ? '已设置' : '未设置' }}</b>。</p>
+
+        <p class="item-desc">
+          <a class="script-link" :href="scriptHref('qq-proxy.js')" download>下载 Cloudflare Worker 代理脚本</a>
+        </p>
       </section>
     </el-form>
     <template #footer>
@@ -232,7 +258,6 @@ form :deep(textarea) {
 import { defineComponent } from 'vue';
 import { ElMessage } from 'element-plus';
 import { storage } from '@/utils/storage';
-import Ruby from './Ruby.vue';
 import {
   importFromDbFile,
   importFromKeyFile,
@@ -243,23 +268,9 @@ import {
 } from '@/utils/kgg-keys';
 import type { UploadFile, UploadUserFile } from 'element-plus';
 
-// FIXME: 看起来不会触发这个验证提示？
-function validateJooxUUID(rule: any, value: any, callback: any) {
-  if (!value || !/^[\da-fA-F]{32}$/.test(value)) {
-    callback(new Error('无效的 Joox UUID，请参考 Wiki 获取。'));
-  } else {
-    callback();
-  }
-}
-
-const rules = {
-  jooxUUID: { validator: validateJooxUUID, trigger: 'change' },
-};
+const rules = {};
 
 export default defineComponent({
-  components: {
-    Ruby,
-  },
   props: {
     show: { type: Boolean, required: true },
   },
@@ -269,7 +280,6 @@ export default defineComponent({
       saving: false,
       importing: false,
       form: {
-        jooxUUID: '',
         qqCookie: '',
         qqUin: '',
         qqProxy: '',
@@ -305,7 +315,6 @@ export default defineComponent({
   },
   methods: {
     async resetForm() {
-      this.form.jooxUUID = await storage.loadJooxUUID();
       this.form.qqCookie = await storage.loadQQCookie();
       this.form.qqUin = await storage.loadQQUin();
       this.form.qqProxy = await storage.loadQQProxy();
@@ -323,6 +332,11 @@ export default defineComponent({
       return `${id.slice(0, 10)}…${id.slice(-8)}`;
     },
 
+    scriptHref(file: string): string {
+      const base = import.meta.env.BASE_URL || '/';
+      return base + 'scripts/' + file;
+    },
+
     async cancel() {
       await this.resetForm();
       this.$emit('done');
@@ -330,7 +344,6 @@ export default defineComponent({
 
     async emitConfirm() {
       this.saving = true;
-      await storage.saveJooxUUID(this.form.jooxUUID);
       await storage.saveQQCookie(this.form.qqCookie.trim());
       await storage.saveQQUin(this.form.qqUin.trim());
       await storage.saveQQProxy(this.form.qqProxy.trim());
