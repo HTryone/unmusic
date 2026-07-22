@@ -173,6 +173,10 @@ export default defineConfig({
   server: {
     port: 8080,
     open: false,
+    // 不监听 dist，避免构建清空 dist 时因监听句柄被锁（EBUSY）导致 build 失败
+    watch: {
+      ignored: ['**/dist/**'],
+    },
     // 开发期 musicex 解密代理：浏览器同源请求 /qq-api，由 vite 转发到 u.y.qq.com。
     // 前端用 X-QQ-Cookie 头传 Cookie（浏览器禁止设 Cookie 头），这里转成真实 Cookie 头。
     proxy: {

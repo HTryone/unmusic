@@ -19,6 +19,26 @@ import { SplitFilename } from '@/decrypt/utils';
 import { storage } from '@/utils/storage';
 import InMemoryStorage from '@/utils/storage/InMemoryStorage';
 
+// musicex 格式常以 .mflac/.mgg 等扩展名出现（QQ 音乐下载即如此），
+// 但内部无内嵌密钥、以文件尾部 8 字节 "musicex\0" 标记为特征。
+// 优先按尾部标记路由，避免误走 QTag/WASM 路径导致解密出乱码。
+async function isMusicexFile(raw: Blob | ArrayBuffer): Promise<boolean> {
+  try {
+    let tail: Uint8Array;
+    if (typeof ArrayBuffer !== 'undefined' && raw instanceof ArrayBuffer) {
+      tail = new Uint8Array(raw.slice(raw.byteLength - 8));
+    } else {
+      const blob = (raw as Blob).slice(-8);
+      tail = new Uint8Array(await blob.arrayBuffer());
+    }
+    if (tail.length < 8) return false;
+    const sig = [0x6d, 0x75, 0x73, 0x69, 0x63, 0x65, 0x78, 0x00]; // "musicex\0"
+    return sig.every((b, i) => tail[i] === b);
+  } catch {
+    return false;
+  }
+}
+
 export async function Decrypt(file: FileInfo, config: Record<string, any>): Promise<DecryptResult> {
   // Worker thread will fallback to in-memory storage.
   if (storage instanceof InMemoryStorage) {
@@ -27,6 +47,11 @@ export async function Decrypt(file: FileInfo, config: Record<string, any>): Prom
 
   const raw = SplitFilename(file.name);
   let rt_data: DecryptResult;
+
+  // 先按尾部标记识别 musicex（无视扩展名），其余格式再走扩展名路由
+  if (await isMusicexFile(file.raw)) {
+    rt_data = await MusicexDecrypt(file.raw, raw.name, raw.ext);
+  } else {
   switch (raw.ext) {
     case 'mg3d': // Migu Wav
       rt_data = await Mg3dDecrypt(file.raw, raw.name);
@@ -124,6 +149,7 @@ export async function Decrypt(file: FileInfo, config: Record<string, any>): Prom
       throw '网页版无法解锁，请使用<a target="_blank" href="https://git.unlock-music.dev/um/cli">CLI版本</a>'
     default:
       throw '不支持此文件格式';
+  }
   }
 
   if (!rt_data.rawExt) rt_data.rawExt = raw.ext;
