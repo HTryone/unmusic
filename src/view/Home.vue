@@ -239,6 +239,8 @@ export default defineComponent({
       // 再次点击当前正在播放的曲目 = 暂停/继续切换，无需重新加载
       if (this.playing_row === row) {
         if (audio.paused) {
+          // 播完(ended)后再次点击：先把进度归零再播放，否则部分浏览器不会从头重播
+          if (audio.ended) audio.currentTime = 0;
           try {
             await audio.play();
           } catch (e) {
@@ -303,7 +305,10 @@ export default defineComponent({
     },
     onSeekChange(val: number) {
       const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
-      if (audio && this.playing_row) audio.currentTime = val;
+      if (audio && this.playing_row) {
+        audio.currentTime = val; // 设到 < 时长会自动清除 ended 状态，已播完也能拖动
+      }
+      this.progress = val; // 立即回写，暂停/播完状态下拖动也能即时看到滑块移动
       this.seek_hold = 0;
     },
     fmtTime(s: number): string {
@@ -313,14 +318,8 @@ export default defineComponent({
       return `${m}:${sec.toString().padStart(2, '0')}`;
     },
     onPlayEnded() {
-      // 播完自动跳到表格里的下一首
-      if (!this.playing_row) return;
-      const idx = this.tableData.indexOf(this.playing_row);
-      if (idx >= 0 && idx + 1 < this.tableData.length) {
-        this.changePlaying(this.tableData[idx + 1]);
-      } else {
-        this.is_playing = false;
-      }
+      // 播完当前曲目即停住，不自动连播下一首；进度停在末尾，可点播放键从头重播
+      this.is_playing = false;
     },
     onRowDelete(row: DecryptResult) {
       // 删除的正是当前曲目：先停播并清空 src，避免播放条继续指向已撤销的 blob
