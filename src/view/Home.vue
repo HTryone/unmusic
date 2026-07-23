@@ -48,15 +48,66 @@
       </el-row>
     </div>
 
-    <audio :autoplay="playing_auto" :src="playing_url" controls />
+    <div class="player-bar">
+      <div v-if="playing_row" class="now-playing">
+        正在播放：{{ playing_row.title }}<template v-if="playing_row.artist"> - {{ playing_row.artist }}</template>
+      </div>
+      <audio
+        ref="audioRef"
+        @play="is_playing = true"
+        @pause="is_playing = false"
+        @ended="onPlayEnded"
+        @error="onPlayError"
+        @timeupdate="onTimeUpdate"
+        @loadedmetadata="onLoadedMeta"
+      />
+      <div class="player-controls">
+        <button
+          class="play-btn"
+          :disabled="!playing_row"
+          :title="is_playing ? '暂停' : '播放'"
+          @click="togglePlay"
+        >
+          <component :is="is_playing ? VideoPause : VideoPlay" />
+        </button>
+        <span class="time">{{ fmtTime(progress) }}</span>
+        <el-slider
+          v-model="progress"
+          class="progress-slider"
+          :max="duration || 0.1"
+          :step="0.1"
+          :show-tooltip="false"
+          :disabled="!playing_row"
+          @input="onSeekInput"
+          @change="onSeekChange"
+        />
+        <span class="time">{{ fmtTime(duration) }}</span>
+        <button
+          class="vol-icon"
+          :class="{ muted: volume === 0 }"
+          :title="volume === 0 ? '取消静音（点击恢复）' : '音量 ' + volume + '%（点击静音）'"
+          @click="toggleMute"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" />
+            <path class="vol-wave" d="M16 8.5a4 4 0 010 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            <g class="vol-slash">
+              <line x1="16" y1="9" x2="21" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <line x1="21" y1="9" x2="16" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </g>
+          </svg>
+        </button>
+        <el-slider v-model="volume" class="volume-slider" :min="0" :max="100" :step="1" :show-tooltip="false" />
+      </div>
+    </div>
 
-    <PreviewTable :policy="filename_policy" :table-data="tableData" :instant-save="instant_save" @download="saveFile" @edit="editFile" @play="changePlaying" />
+    <PreviewTable :policy="filename_policy" :table-data="tableData" :instant-save="instant_save" :playing-row="playing_row" :is-playing="is_playing" @download="saveFile" @edit="editFile" @play="changePlaying" @delete="onRowDelete" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Tools, Download, Delete } from '@element-plus/icons-vue';
+import { Tools, Download, Delete, VideoPlay, VideoPause } from '@element-plus/icons-vue';
 import FileSelector from '@/component/FileSelector.vue';
 import PreviewTable from '@/component/PreviewTable.vue';
 import ConfigDialog from '@/component/ConfigDialog.vue';
@@ -106,6 +157,10 @@ export default defineComponent({
     Download,
     Delete,
   },
+  setup() {
+    // 图标以 <component :is> 绑定用，需暴露到模板作用域
+    return { VideoPlay, VideoPause };
+  },
   data() {
     return {
       showConfigDialog: false,
@@ -115,8 +170,14 @@ export default defineComponent({
         file: '', blob: new Blob(), ext: '', mime: '',
       } as EditData,
       tableData: [] as DecryptResult[],
-      playing_url: '',
-      playing_auto: false,
+      playing_row: null as DecryptResult | null, // 当前曲目（按对象引用，表格 splice 后仍能追踪）
+      is_playing: false, // 音频真实播放状态（由 audio 事件驱动）
+      play_token: 0, // 切歌令牌：每次切歌自增，防止旧的 play() 异步回调覆盖新状态
+      progress: 0, // 播放进度（秒）
+      duration: 0, // 总时长（秒）
+      volume: 100, // 音量 0-100
+      prev_volume: 100, // 静音前音量，toggleMute 时恢复用
+      seek_hold: 0, // 拖动进度条时间戳：拖动期间 timeupdate 不回写进度，避免滑块抖动
       filename_policy: FilenamePolicy.ArtistAndTitle,
       instant_save: false,
       FilenamePolicies,
@@ -124,6 +185,10 @@ export default defineComponent({
     };
   },
   watch: {
+    volume(v: number) {
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (audio) audio.volume = v / 100;
+    },
     instant_save(val) {
       if (val) {
         this.showDirectlySave();
@@ -168,11 +233,156 @@ export default defineComponent({
         window._paq.push(['trackEvent', 'Error', String(errInfo), filename]);
       }
     },
-    changePlaying(url: string) {
-      this.playing_url = url;
-      this.playing_auto = true;
+    async changePlaying(row: DecryptResult) {
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (!audio) return;
+
+      // 再次点击当前正在播放的曲目 = 暂停/继续切换，无需重新加载
+      if (this.playing_row === row) {
+        if (audio.paused) {
+          try {
+            await audio.play();
+          } catch (e) {
+            /* AbortError 等忽略 */
+          }
+        } else {
+          audio.pause();
+        }
+        return;
+      }
+
+      // 切换到新曲目：令牌自增，标记这次切换
+      const token = ++this.play_token;
+      this.playing_row = row;
+      this.progress = 0;
+      this.duration = 0;
+
+      // 关键：先暂停旧曲目并显式 load()，让浏览器释放上一首的解码资源，
+      // 避免直接替换 src 时的同步重解析卡顿 + 旧 play() 抛 AbortError
+      audio.pause();
+      audio.src = row.file;
+      audio.load();
+
+      try {
+        await audio.play();
+      } catch (e) {
+        // 若期间用户又切了别的歌（token 变化），忽略这次过期的错误；
+        // AbortError 是正常切歌被打断，无需打扰用户
+        if (token === this.play_token && (e as DOMException)?.name !== 'AbortError') {
+          console.warn('播放失败', e);
+          const name = (e as DOMException)?.name;
+          const reason =
+            name === 'NotAllowedError'
+              ? '浏览器拦截了自动播放，请手动点击播放条上的播放键'
+              : name === 'NotSupportedError'
+              ? '浏览器不支持播放该音频格式'
+              : String(e);
+          this.$notify.error({
+            title: '播放失败',
+            message: `${row.title}：${reason}`,
+            duration: 5000,
+          });
+        }
+      }
+    },
+    onPlayError() {
+      // <audio> 媒体层错误（文件损坏、blob 已失效等）。清空 src 时不触发提示。
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (!audio || !this.playing_row || !audio.currentSrc) return;
+      const err = audio.error;
+      // MediaError code: 1=用户中止 2=网络错误 3=解码失败 4=格式不支持/源无效
+      const msgMap: Record<number, string> = {
+        2: '读取音频数据失败',
+        3: '音频解码失败，文件可能已损坏',
+        4: '音频格式不受支持或源已失效',
+      };
+      const msg = (err && msgMap[err.code]) || '';
+      if (!msg) return; // code 1（主动中止）等不打扰用户
+      console.error('audio error', err?.code, err?.message);
+      this.is_playing = false;
+      this.$notify.error({
+        title: '播放出错',
+        message: `${this.playing_row.title}：${msg}`,
+        duration: 5000,
+      });
+    },
+    toggleMute() {
+      // 点击音量图标：在静音 / 恢复之间切换，避免用户找不到静音入口
+      if (this.volume > 0) {
+        this.prev_volume = this.volume;
+        this.volume = 0;
+      } else {
+        this.volume = this.prev_volume || 100;
+      }
+    },
+    togglePlay() {
+      // 播放条主按钮：对当前曲目做播放/暂停切换
+      if (this.playing_row) this.changePlaying(this.playing_row);
+    },
+    onTimeUpdate() {
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (!audio) return;
+      // 拖动进度条期间不回写，避免滑块被 timeupdate 拽回去
+      if (Date.now() - this.seek_hold < 400) return;
+      this.progress = audio.currentTime || 0;
+    },
+    onLoadedMeta() {
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (!audio) return;
+      this.duration = isFinite(audio.duration) ? audio.duration : 0;
+      audio.volume = this.volume / 100; // 新元素/新源时同步音量
+    },
+    onSeekInput() {
+      this.seek_hold = Date.now();
+    },
+    onSeekChange(val: number) {
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (audio && this.playing_row) audio.currentTime = val;
+      this.seek_hold = 0;
+    },
+    fmtTime(s: number): string {
+      if (!isFinite(s) || s < 0) s = 0;
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, '0')}`;
+    },
+    onPlayEnded() {
+      // 播完自动跳到表格里的下一首
+      if (!this.playing_row) return;
+      const idx = this.tableData.indexOf(this.playing_row);
+      if (idx >= 0 && idx + 1 < this.tableData.length) {
+        this.changePlaying(this.tableData[idx + 1]);
+      } else {
+        this.is_playing = false;
+      }
+    },
+    onRowDelete(row: DecryptResult) {
+      // 删除的正是当前曲目：先停播并清空 src，避免播放条继续指向已撤销的 blob
+      if (this.playing_row === row) {
+        const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+        if (audio) {
+          audio.pause();
+          audio.removeAttribute('src');
+          audio.load();
+        }
+        this.playing_row = null;
+        this.is_playing = false;
+        this.progress = 0;
+        this.duration = 0;
+      }
     },
     handleDeleteAll() {
+      // 清除全部前先停播，避免播放条悬空指向已撤销的 blob
+      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
+      if (audio) {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+      }
+      this.playing_row = null;
+      this.is_playing = false;
+      this.progress = 0;
+      this.duration = 0;
       this.tableData.forEach((value) => {
         RemoveBlobMusic(value);
       });
@@ -313,3 +523,119 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.player-bar {
+  margin: 0 auto 15px;
+  max-width: 720px; /* 播放条居中、宽度收住，不再全宽铺满 */
+}
+.now-playing {
+  font-size: 13px;
+  color: #67c23a;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+.player-bar audio {
+  display: none; /* 原生控件已由自定义播放条替代 */
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-slider {
+  flex: 1;
+  min-width: 120px;
+}
+.volume-slider {
+  width: 90px;
+  flex: none;
+}
+.time {
+  font-size: 14px;
+  color: #606266;
+  min-width: 42px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* 播放/暂停按钮：原生 <button> + <el-icon>，避免 el-button 默认白底观感；
+   仿 chrome 原生 audio 控件的播放键（圆底 + 深色图标，hover 浅高亮） */
+.player-controls .play-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #303133;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.player-controls .play-btn:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+.player-controls .play-btn:active:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.player-controls .play-btn:focus-visible {
+  outline: 2px solid rgba(64, 158, 255, 0.5);
+  outline-offset: 2px;
+}
+.player-controls .play-btn:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+/* 音量图标按钮：与播放键同风格（透明圆 + hover 浅高亮），点击切换静音 */
+.player-controls .vol-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #303133;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.player-controls .vol-icon:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+.player-controls .vol-icon:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.player-controls .vol-icon:focus-visible {
+  outline: 2px solid rgba(64, 158, 255, 0.5);
+  outline-offset: 2px;
+}
+/* 静音态：隐藏声波弧、显示斜杠 */
+.player-controls .vol-icon .vol-slash {
+  display: none;
+}
+.player-controls .vol-icon.muted .vol-wave {
+  display: none;
+}
+.player-controls .vol-icon.muted .vol-slash {
+  display: block;
+}
+/* 滑块小球：纯蓝实心、去掉白边与外围留白（亮暗通用，留组件内即可） */
+.progress-slider :deep(.el-slider__button),
+.volume-slider :deep(.el-slider__button) {
+  background-color: #409eff;
+  border: none;
+  box-shadow: none;
+}
+</style>

@@ -401,6 +401,26 @@
     color: $dark-text-main;
   }
 
+  // PLAYER 播放条（Home.vue 自定义播放条）
+  // 暗色下：进度条/音量轨道改为半透明白；播放键图标跟随暗色文字色、hover 出浅高亮。
+  // 加 !important 以压过组件 scoped 样式（scoped 编译后带 data-v 属性，特异性更高）。
+  .progress-slider,
+  .volume-slider {
+    --el-slider-runway-bg-color: rgba(255, 255, 255, 0.2);
+  }
+  .player-controls .play-btn {
+    color: $dark-text-main !important;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+  .player-controls .vol-icon {
+    color: $dark-text-main !important;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
   // NOTIFICATION 补全
   .el-notification{
     &__closeBtn{
