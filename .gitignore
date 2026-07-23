@@ -35,3 +35,6 @@ yarn-error.log*
 
 # Vite temp config files
 vite.config.ts.timestamp-*.mjs
+
+# Cloudflare Wrangler 本地状态（含登录态/缓存，勿入库）
+.wrangler/
