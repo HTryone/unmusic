@@ -1,8 +1,8 @@
 {
   "name": "unlock-music",
-  "version": "F2.0.1",
+  "version": "F2.0.2",
   "ext_build": 0,
-  "updateInfo": "重构版本更新机制：版本检查改为读取自建 version.json，消除控制台 CORS 报错；更新提醒常驻显示，新增「立即更新」一键刷新按钮（线上/PWA）与「前往下载新版」按钮（发行版）；发版流程简化为只需修改 package.json 一处",
+  "updateInfo": "修复「立即保存」多项问题：关掉开关或取消选文件夹后仍写入旧目录（现已正确回退浏览器下载）；文件名歌手缺失时不再出现字面 undefined 而是回退原文件名；开启立即保存后首页正常显示已解密文件信息；消除立即保存时「保存成功」与「解锁成功」重复弹窗；「下载全部」改为顺序写入避免并发堆积",
   "license": "MIT",
   "description": "Unlock encrypted music file in browser.",
   "repository": {

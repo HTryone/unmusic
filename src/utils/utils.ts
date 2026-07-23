@@ -15,17 +15,38 @@ export const FilenamePolicies: { key: FilenamePolicy; text: string }[] = [
   { key: FilenamePolicy.SameAsOriginal, text: '同源文件名' },
 ];
 
+// 把元数据字段清洗成可用字符串：undefined/null/空串统一视为“缺失”
+function cleanMeta(s?: string): string {
+  if (!s) return '';
+  const t = s.trim();
+  return t === 'undefined' || t === 'null' ? '' : t;
+}
+
+// 取原文件名（去掉扩展名），用于“未识别到歌手时回退”
+function rawBaseName(data: DecryptResult): string {
+  const n = cleanMeta(data.rawFilename) || '未命名';
+  const i = n.lastIndexOf('.');
+  return i > 0 ? n.slice(0, i) : n;
+}
+
 export function GetDownloadFilename(data: DecryptResult, policy: FilenamePolicy): string {
+  const artist = cleanMeta(data.artist);
+  const title = cleanMeta(data.title);
+  const raw = rawBaseName(data);
   switch (policy) {
     case FilenamePolicy.TitleOnly:
-      return `${data.title}.${data.ext}`;
+      return `${title || raw}.${data.ext}`;
     case FilenamePolicy.TitleAndArtist:
-      return `${data.title} - ${data.artist}.${data.ext}`;
+      // 无歌手时回退原文件名，避免 “歌名 - undefined”
+      if (!artist) return `${raw}.${data.ext}`;
+      return `${title || raw} - ${artist}.${data.ext}`;
     case FilenamePolicy.SameAsOriginal:
-      return `${data.rawFilename}.${data.ext}`;
+      return `${raw}.${data.ext}`;
     default:
     case FilenamePolicy.ArtistAndTitle:
-      return `${data.artist} - ${data.title}.${data.ext}`;
+      // 未识别到歌手时回退原文件名，避免出现 “undefined - 歌名”
+      if (!artist) return `${raw}.${data.ext}`;
+      return `${artist} - ${title || raw}.${data.ext}`;
   }
 }
 

@@ -37,7 +37,7 @@
 
         <el-tooltip class="item" effect="dark" placement="top-start">
           <template #content>
-            <span v-if="instant_save">工作模式: {{ dir ? '写入本地文件系统' : '调用浏览器下载' }}</span>
+            <span v-if="instant_save">工作模式: {{ (instant_save && dir) ? '写入本地文件系统' : '调用浏览器下载' }}</span>
             <span v-else>
               当您使用此工具进行大量文件解锁的时候，建议开启此选项。<br />
               开启后，解锁结果将不会存留于浏览器中，防止内存不足。
@@ -125,16 +125,22 @@ export default defineComponent({
   },
   watch: {
     instant_save(val) {
-      if (val) this.showDirectlySave();
+      if (val) {
+        this.showDirectlySave();
+      } else {
+        // 关闭“立即保存”时清掉已选文件夹，避免后续下载仍偷偷写入旧目录
+        this.dir = null;
+      }
     },
   },
   methods: {
     async showSuccess(data: DecryptResult) {
+      // 两种模式都把信息推入表格，保证首页有预览（立即保存也不再“解锁成功却看不见”）
+      this.tableData.push(data);
       if (this.instant_save) {
+        // 立即保存：写盘 + 仅弹“保存成功”（saveFile 内部已通知），避免与解锁通知重复
         await this.saveFile(data);
-        RemoveBlobMusic(data);
       } else {
-        this.tableData.push(data);
         this.$notify.success({
           title: '解锁成功',
           message: '成功解锁 ' + data.title,
@@ -175,16 +181,12 @@ export default defineComponent({
     handleDecryptionConfig() {
       this.showConfigDialog = true;
     },
-    handleDownloadAll() {
-      let index = 0;
-      let c = setInterval(() => {
-        if (index < this.tableData.length) {
-          this.saveFile(this.tableData[index]);
-          index++;
-        } else {
-          clearInterval(c);
-        }
-      }, 300);
+    async handleDownloadAll() {
+      // 顺序逐个保存，避免“立即保存”下大量写盘并发堆积（每条之间让出事件循环）
+      for (let i = 0; i < this.tableData.length; i++) {
+        await this.saveFile(this.tableData[i]);
+        await new Promise((r) => setTimeout(r, 120));
+      }
     },
     async handleEdit(data: EditDialogOkData) {
       this.showEditDialog = false;
@@ -258,7 +260,9 @@ export default defineComponent({
       this.showEditDialog = true;
     },
     async saveFile(data: DecryptResult) {
-      if (this.dir) {
+      // 必须以“立即保存”开关为准：仅当开关开启且已选目录才写磁盘，
+      // 否则一律走浏览器下载（解决取消选文件夹后 / 关掉开关后仍写入旧目录的问题）
+      if (this.instant_save && this.dir) {
         await DirectlyWriteFile(data, this.filename_policy, this.dir);
         this.$notify({
           title: '保存成功',
@@ -272,7 +276,13 @@ export default defineComponent({
       }
     },
     async showDirectlySave() {
-      if (!window.showDirectoryPicker) return;
+      if (!window.showDirectoryPicker) {
+        // 浏览器不支持直接写盘：直接退回浏览器下载模式，避免开关开着却无目录可用
+        this.instant_save = false;
+        this.dir = null;
+        this.$notify.warning('当前浏览器不支持直接保存到磁盘，已切换为浏览器下载');
+        return;
+      }
       try {
         await this.$confirm('您的浏览器支持文件直接保存到磁盘，是否使用？', '新特性提示', {
           confirmButtonText: '使用',
@@ -281,7 +291,9 @@ export default defineComponent({
           center: true,
         });
       } catch (e) {
-        console.log(e);
+        // 用户选择“不使用”或关闭弹窗：明确退回浏览器下载模式
+        this.instant_save = false;
+        this.dir = null;
         return;
       }
       try {
@@ -291,7 +303,11 @@ export default defineComponent({
         await dir.getFileHandle(test_filename, { create: true });
         await dir.removeEntry(test_filename);
       } catch (e) {
+        // 用户取消选择文件夹：回退为浏览器下载，而不是保留旧的/空的目录状态
         console.error(e);
+        this.instant_save = false;
+        this.dir = null;
+        this.$notify.info('未选择保存文件夹，将继续使用浏览器下载');
       }
     },
   },
