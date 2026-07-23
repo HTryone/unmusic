@@ -57,7 +57,6 @@
         @play="is_playing = true"
         @pause="is_playing = false"
         @ended="onPlayEnded"
-        @error="onPlayError"
         @timeupdate="onTimeUpdate"
         @loadedmetadata="onLoadedMeta"
       />
@@ -266,45 +265,12 @@ export default defineComponent({
       try {
         await audio.play();
       } catch (e) {
-        // 若期间用户又切了别的歌（token 变化），忽略这次过期的错误；
-        // AbortError 是正常切歌被打断，无需打扰用户
-        if (token === this.play_token && (e as DOMException)?.name !== 'AbortError') {
-          console.warn('播放失败', e);
-          const name = (e as DOMException)?.name;
-          const reason =
-            name === 'NotAllowedError'
-              ? '浏览器拦截了自动播放，请手动点击播放条上的播放键'
-              : name === 'NotSupportedError'
-              ? '浏览器不支持播放该音频格式'
-              : String(e);
-          this.$notify.error({
-            title: '播放失败',
-            message: `${row.title}：${reason}`,
-            duration: 5000,
-          });
-        }
+        // 切歌打断(AbortError)或旧回调已过期(token 变化)属正常，忽略；
+        // 其余播放失败仅记日志、不弹窗（与线上 a46c048 原生 audio 行为一致）
+        if (token !== this.play_token) return;
+        if ((e as DOMException)?.name === 'AbortError') return;
+        console.warn('播放失败', e);
       }
-    },
-    onPlayError() {
-      // <audio> 媒体层错误（文件损坏、blob 已失效等）。清空 src 时不触发提示。
-      const audio = this.$refs.audioRef as HTMLAudioElement | undefined;
-      if (!audio || !this.playing_row || !audio.currentSrc) return;
-      const err = audio.error;
-      // MediaError code: 1=用户中止 2=网络错误 3=解码失败 4=格式不支持/源无效
-      const msgMap: Record<number, string> = {
-        2: '读取音频数据失败',
-        3: '音频解码失败，文件可能已损坏',
-        4: '音频格式不受支持或源已失效',
-      };
-      const msg = (err && msgMap[err.code]) || '';
-      if (!msg) return; // code 1（主动中止）等不打扰用户
-      console.error('audio error', err?.code, err?.message);
-      this.is_playing = false;
-      this.$notify.error({
-        title: '播放出错',
-        message: `${this.playing_row.title}：${msg}`,
-        duration: 5000,
-      });
     },
     toggleMute() {
       // 点击音量图标：在静音 / 恢复之间切换，避免用户找不到静音入口

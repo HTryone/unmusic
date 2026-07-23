@@ -27,14 +27,16 @@
     <el-table-column label="操作">
       <template #default="scope">
         <el-button
+          class="play-pause-btn"
+          size="large"
           :icon="isRowPlaying(scope.row) ? VideoPause : VideoPlay"
           circle
           :type="scope.row === props.playingRow ? 'primary' : 'success'"
           :title="isRowPlaying(scope.row) ? '暂停' : '播放'"
           @click="handlePlay(scope.$index, scope.row)" />
-        <el-button :icon="Download" circle :disabled="props.instantSave" title="立即保存模式已自动写入磁盘，无需再下载" @click="handleDownload(scope.row)" />
-        <el-button :icon="Edit" circle @click="handleEdit(scope.row)" />
-        <el-button :icon="Delete" circle type="danger" @click="handleDelete(scope.$index, scope.row)" />
+        <el-button class="ops-btn" size="large" :icon="Download" circle :disabled="props.instantSave" title="立即保存模式已自动写入磁盘，无需再下载" @click="handleDownload(scope.row)" />
+        <el-button class="ops-btn" size="large" :icon="Edit" circle @click="handleEdit(scope.row)" />
+        <el-button class="ops-btn" size="large" :icon="Delete" circle type="danger" @click="handleDelete(scope.$index, scope.row)" />
       </template>
     </el-table-column>
   </el-table>
@@ -81,4 +83,13 @@ function handleEdit(row: any) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+/* 操作列图标放大（合法盒增长，不被 .cell 裁剪） */
+.ops-btn :deep(.el-icon) {
+  font-size: 18px;
+}
+/* 播放/暂停按钮图标再突出一点 */
+.play-pause-btn :deep(.el-icon) {
+  font-size: 24px;
+}
+</style>
