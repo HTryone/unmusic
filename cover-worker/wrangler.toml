@@ -1,0 +1,6 @@
+name = "unmusic-cover-proxy"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# 部署后你的 Worker 地址形如: https://unmusic-cover-proxy.<你的子域>.workers.dev
+# 把它填到前端 src/utils/api.ts 的 IXAREA_API_ENDPOINT 即可启用在线封面。

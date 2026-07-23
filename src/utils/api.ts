@@ -1,4 +1,4 @@
-export const IXAREA_API_ENDPOINT = 'https://um-api.ixarea.com';
+export const IXAREA_API_ENDPOINT = 'https://unmusic-cover-proxy.xianshenghu363.workers.dev';
 
 // 本项目线上部署地址。版本检查改为读取自建的静态 version.json（发新版时
 // 更新 public/version.json 即可），不再请求上游 um-api（其版本号体系与本
