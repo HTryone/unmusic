@@ -27,7 +27,7 @@
     <el-table-column label="操作">
       <template #default="scope">
         <el-button :icon="VideoPlay" circle type="success" @click="handlePlay(scope.$index, scope.row)" />
-        <el-button :icon="Download" circle @click="handleDownload(scope.row)" />
+        <el-button :icon="Download" circle :disabled="props.instantSave" title="立即保存模式已自动写入磁盘，无需再下载" @click="handleDownload(scope.row)" />
         <el-button :icon="Edit" circle @click="handleEdit(scope.row)" />
         <el-button :icon="Delete" circle type="danger" @click="handleDelete(scope.$index, scope.row)" />
       </template>
@@ -42,6 +42,7 @@ import { RemoveBlobMusic } from '@/utils/utils';
 const props = defineProps<{
   tableData: Array<any>;
   policy: number;
+  instantSave: boolean;
 }>();
 
 const emit = defineEmits<{

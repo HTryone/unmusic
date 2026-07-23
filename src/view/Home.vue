@@ -28,7 +28,7 @@
             <el-icon><Tools /></el-icon>解密设定
           </el-button>
         </el-tooltip>
-        <el-button plain @click="handleDownloadAll">
+        <el-button plain @click="handleDownloadAll" :disabled="instant_save" title="立即保存模式已自动写入磁盘，无需再下载全部">
           <el-icon><Download /></el-icon>下载全部
         </el-button>
         <el-button plain type="danger" @click="handleDeleteAll">
@@ -50,7 +50,7 @@
 
     <audio :autoplay="playing_auto" :src="playing_url" controls />
 
-    <PreviewTable :policy="filename_policy" :table-data="tableData" @download="saveFile" @edit="editFile" @play="changePlaying" />
+    <PreviewTable :policy="filename_policy" :table-data="tableData" :instant-save="instant_save" @download="saveFile" @edit="editFile" @play="changePlaying" />
   </div>
 </template>
 
