@@ -122,6 +122,11 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
+        // 每次构建资源 hash 全变，旧 precache cache 名带 hash 会残留并可能干扰
+        // 旧标签页；显式开启清理，部署后旧 SW 缓存自动失效，避免引用已删旧 JS 白屏。
+        cleanupOutdatedCaches: true,
+        // SPA 导航回退：万一某资源缺失/404，回退到 index.html，避免整页打不开。
+        navigateFallback: 'index.html',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // WASM and worker bundles are large; raise the precache size ceiling.
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

@@ -49,19 +49,10 @@ export default {
     // 强制更新：注销 Service Worker + 清空 CacheStorage 后重载。
     // 等效于用户手动 Ctrl+Shift+R，确保旧 SW/旧预缓存不会把页面锁在旧版本。
     async forceUpdate() {
-      try {
-        if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map((r) => r.unregister()));
-        }
-        if (window.caches) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map((k) => caches.delete(k)));
-        }
-      } catch (e) {
-        console.warn('清理旧缓存失败，仍尝试重载', e);
-      }
-      // 加时间戳参数绕过 index.html 的 HTTP 缓存，重载后新 SW 会重新注册
+      // registerType:'autoUpdate' + workbox skipWaiting/clientsClaim 已配：
+      // 新部署后新 SW 会自动接管、预缓存新版资源。这里无需手动 unregister/遍历清
+      // caches（那步很重且与自动更新冲突，会卡顿）。只绕过 HTTP 缓存强制刷新，
+      // 让新 SW 生效即可；reload 后若仍有旧缓存，新 SW 的 cleanupOutdatedCaches 会清。
       window.location.replace(window.location.pathname + '?_t=' + Date.now());
     },
     async finishLoad() {
