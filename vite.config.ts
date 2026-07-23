@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 
 // The @xhacker/* WASM bundles are emscripten MODULARIZE modules that assign the
@@ -49,12 +49,38 @@ function emscriptenExports(): Plugin {
       };
 }
 
+// 发版只需改 package.json 的 version 与 updateInfo 两个字段；build 时本插件据此
+// 自动生成 dist/version.json（线上「发现新版本」校验用的数据源），保证它与烧进
+// bundle 的版本号永远一致，从根上杜绝「两处版本号忘了同步」。
+// - Version ← package.json.version（比较基准）
+// - Detail  ← package.json.updateInfo（更新说明，与蓝色「离线使用」通知共用同一段）
+// - URL     ← 下面常量（发行版下载页，换仓库时改这里）
+function generateVersionJson(): Plugin {
+  const RELEASE_URL = 'https://github.com/HTryone/unmusic/releases';
+  return {
+    name: 'unlock-music:generate-version-json',
+    apply: 'build',
+    writeBundle(options) {
+      const root = dirname(fileURLToPath(import.meta.url));
+      const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf-8'));
+      const payload = {
+        Version: pkg.version,
+        Detail: pkg.updateInfo,
+        URL: RELEASE_URL,
+      };
+      const outDir = options.dir ?? resolve(root, 'dist');
+      writeFileSync(resolve(outDir, 'version.json'), JSON.stringify(payload, null, 2) + '\n');
+    },
+  };
+}
+
 // Vite + Vue 3 configuration for Unlock Music
 // Migrated from Vue CLI (Webpack) on 2026-07-21
 export default defineConfig({
   base: './',
   plugins: [
     emscriptenExports(),
+    generateVersionJson(),
     vue({
       // Vue 2 -> Vue 3 migration: support legacy slot syntax
       script: {

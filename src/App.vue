@@ -46,6 +46,24 @@ export default {
     this.$nextTick(() => this.finishLoad());
   },
   methods: {
+    // 强制更新：注销 Service Worker + 清空 CacheStorage 后重载。
+    // 等效于用户手动 Ctrl+Shift+R，确保旧 SW/旧预缓存不会把页面锁在旧版本。
+    async forceUpdate() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((r) => r.unregister()));
+        }
+        if (window.caches) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+      } catch (e) {
+        console.warn('清理旧缓存失败，仍尝试重载', e);
+      }
+      // 加时间戳参数绕过 index.html 的 HTTP 缓存，重载后新 SW 会重新注册
+      window.location.replace(window.location.pathname + '?_t=' + Date.now());
+    },
     async finishLoad() {
       const mask = document.getElementById('loader-mask');
       if (!!mask) mask.remove();
@@ -60,11 +78,22 @@ export default {
         import.meta.env.PROD &&
         (updateInfo.HttpsFound || (updateInfo.Found && window.location.protocol !== 'https:'))
       ) {
+        // 文案分流：线上/PWA 用户点击「立即更新」按钮强制刷新拿新版；
+        // 发行版（localhost 本地跑 dist）需要去线上站获取新包。
+        const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        // 通知里的 HTML 字符串无法直接绑定 Vue 事件，挂到 window 供 onclick 调用
+        window.__umForceUpdate = () => this.forceUpdate();
+        const btnStyle =
+          'display:inline-block;margin-top:6px;padding:5px 14px;border-radius:4px;' +
+          'background:#e6a23c;color:#fff;font-weight:bold;cursor:pointer;text-decoration:none;';
+        const action = isLocal
+          ? `<a target="_blank" href="${updateInfo.URL}" style="${btnStyle}">前往下载新版</a>`
+          : `<a href="javascript:void(0)" onclick="window.__umForceUpdate()" style="${btnStyle}">立即更新</a>`;
         this.$notify.warning({
           title: '发现更新',
-          message: `发现新版本 v${updateInfo.Version}<br/>更新详情：${updateInfo.Detail}<br/> <a target="_blank" href="${updateInfo.URL}">获取更新</a>`,
+          message: `发现新版本 ${updateInfo.Version}<br/>更新详情：${updateInfo.Detail}<br/>${action}`,
           dangerouslyUseHTMLString: true,
-          duration: 15000,
+          duration: 0, // 常驻，直到用户点按钮或手动关闭
           position: 'top-left',
         });
       } else {

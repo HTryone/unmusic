@@ -85,6 +85,24 @@ npm run type-check # 类型检查（vue-tsc）
 
 构建出的 `dist/` 是纯静态站点，可直接部署到任意静态托管服务。
 
+### 方式三：发版 / 部署到线上（Cloudflare Pages）
+
+线上站：<https://unmusic-8ml.pages.dev/>。每次发新版**只改 `package.json` 一处**，其余全自动：
+
+1. **改 `package.json`**（两个相邻字段）：
+   - `version`：新版本号（如 `F2.1.0`）。既是页面显示/烧进 bundle 的"本地版本"，也是线上校验版本的来源。
+   - `updateInfo`：本次更新说明。同时用于蓝色"离线使用"通知的"最近更新"和橙色"发现新版本"的更新详情。
+2. **构建**：`npm run build`。build 时会**自动**据 `package.json` 生成 `dist/version.json`（`Version`←`version`、`Detail`←`updateInfo`、`URL`=发行版仓库地址），无需手动维护。
+3. **部署**：把 `dist/` 发布到 Cloudflare Pages。
+4. （可选）**更新发行版**：把新 `dist/` 压缩成 zip 分发。
+
+部署生效后：
+- 老 PWA 用户 / 发行版用户打开页面 → 读到线上 `version.json` 版本号比自己新 → 弹"发现新版本"提醒（PWA/线上弹「立即更新」按钮，发行版弹「前往下载新版」链接）。
+- 版本号一致时不弹更新提醒，只弹常规"离线使用"通知。
+
+> 版本号自动同源于 `package.json`，不会再出现"两处版本号不一致"的问题。
+> 发行版下载链接写在 `vite.config.ts` 的 `generateVersionJson` 插件常量 `RELEASE_URL` 里，换仓库时改那一处即可（几乎不用动）。
+
 ## 已知限制
 
 - **QQ 音乐 musicex 格式需 VIP Cookie + 代理**：musicex（文件尾 `musicex\0`，部分下载文件挂 `.mflac`/`.mgg` 后缀）密钥不在文件内，须在「解锁设定」填入 VIP Cookie 与 API 代理地址（设置页提供 `scan_qq_cookie` 脚本与 `qq-proxy.js` 下载）。STag / QTag 格式已可纯本地解密，无需 Cookie。
