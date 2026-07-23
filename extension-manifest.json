@@ -9,7 +9,7 @@
   "permissions": ["storage"],
   "offline_enabled": true,
   "options_page": "./index.html",
-  "homepage_url": "https://github.com/ix64/unlock-music",
+  "homepage_url": "https://github.com/HTryone/unmusic",
   "browser_action": {
     "default_popup": "./popup.html"
   }
