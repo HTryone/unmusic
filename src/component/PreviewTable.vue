@@ -100,24 +100,9 @@ function handleEdit(row: any) {
   .album-col {
     display: none;
   }
-  /* 封面缩小 */
-  .cover-col :deep(.el-image) {
-    width: 60px !important;
-    height: 60px !important;
-  }
-  /* 操作按钮回缩到 default 尺寸，避免挤宽 */
+  /* 仅让播放键图标与电脑端一致(24px)；封面与操作图标均保持桌面原样，不缩 */
   .play-pause-btn :deep(.el-icon) {
-    font-size: 24px; /* 与电脑端一致 */
-  }
-  .ops-btn :deep(.el-icon) {
-    font-size: 14px;
-  }
-}
-@media (max-width: 480px) {
-  /* 更小屏封面再缩 */
-  .cover-col :deep(.el-image) {
-    width: 48px !important;
-    height: 48px !important;
+    font-size: 24px;
   }
 }
 </style>
