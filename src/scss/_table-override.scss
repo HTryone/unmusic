@@ -1,10 +1,22 @@
 /* 音乐列表操作列按钮样式（全局兜底）
  * 原 scoped 写法在手机端偶发不命中，导致按钮图标回落到 Element Plus 默认大小；
  * 此处提为全局并加 !important，强制桌面 / 手机两端一致。
- * 仅覆盖图标字号，不影响按钮尺寸(type/size 属性)及其他列。 */
+ * 仅覆盖图标字号与播放键外观，不影响按钮尺寸(size 属性)及其他列。 */
 .ops-btn .el-icon {
   font-size: 18px !important;
 }
+/* 播放键：去掉彩色圆环（模板已移除 :type），改为透明图标按钮，与底部播放条一致 */
+.play-pause-btn.el-button {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.play-pause-btn.el-button:hover,
+.play-pause-btn.el-button:focus,
+.play-pause-btn.el-button:active {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: transparent !important;
+}
 .play-pause-btn .el-icon {
-  font-size: 28px !important; /* 内部图标扩大一圈（盒子 40px 不变） */
+  font-size: 32px !important; /* 内部图标再扩大（盒子 40px 不变） */
 }

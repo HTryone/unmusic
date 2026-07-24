@@ -31,7 +31,6 @@
           size="large"
           :icon="isRowPlaying(scope.row) ? VideoPause : VideoPlay"
           circle
-          :type="scope.row === props.playingRow ? 'primary' : 'success'"
           :title="isRowPlaying(scope.row) ? '暂停' : '播放'"
           @click="handlePlay(scope.$index, scope.row)" />
         <el-button class="ops-btn" size="large" :icon="Download" circle :disabled="props.instantSave" title="立即保存模式已自动写入磁盘，无需再下载" @click="handleDownload(scope.row)" />
