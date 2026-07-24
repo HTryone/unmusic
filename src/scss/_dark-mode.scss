@@ -81,61 +81,32 @@
       transform: translateY(2px);
     }
 
-    &--default{
-      &.is-plain {
-        background-color: $dark-btn-bg;
-        &:hover {
-          background-color: $blue;
-          border-color: $blue;
-          color: white;
+    $btn-colors: (
+      default: (c: $blue,   d: $dark-blue,   p-border: false, p-hover-color: true),
+      success: (c: $green,  d: $dark-green,  p-border: false, p-hover-color: true),
+      danger:  (c: $red,    d: $dark-red,    p-border: true,  p-hover-color: false),
+    );
+    @each $name, $cfg in $btn-colors {
+      $c: map-get($cfg, c);
+      $d: map-get($cfg, d);
+      &--#{$name} {
+        &.is-plain {
+          background-color: $dark-btn-bg;
+          @if map-get($cfg, p-border) { border-color: $dark-border; }
+          &:hover {
+            background-color: $c;
+            border-color: $c;
+            @if map-get($cfg, p-hover-color) { color: white; }
+          }
         }
-      }
-      &.is-circle {
-        background-color: $dark-blue;
-        border-color: $dark-blue;
-        &:hover {
-          background-color: $blue;
-          border-color: $blue;
-          color: white;
-        }
-      }
-    }
-
-    &--success{
-      &.is-plain {
-        background-color: $dark-btn-bg;
-        &:hover {
-          background-color: $green;
-          border-color: $green;
-          color: white;
-        }
-      }
-      &.is-circle {
-        background-color: $dark-green;
-        border-color: $dark-green;
-        &:hover {
-          background-color: $green;
-          border-color: $green;
-          color: white;
-        }
-      }
-    }
-    &--danger{
-      &.is-plain{
-        border-color: $dark-border;
-        background-color: $dark-btn-bg;
-        &:hover{
-          background-color: $red;
-          border-color: $red;
-        }
-      }
-      &.is-circle {
-        background-color: $dark-red;
-        border-color: $dark-red;
-        &:hover {
-          background-color: $red;
-          border-color: $red;
-          color: white;
+        &.is-circle {
+          background-color: $d;
+          border-color: $d;
+          &:hover {
+            background-color: $c;
+            border-color: $c;
+            color: white;
+          }
         }
       }
     }
@@ -195,7 +166,7 @@
     }
   }
 
-  // ALERT
+  // ALERT / NOTIFICATION
   .el-notification{
     background-color: $dark-btn-bg-highlight;
     border-color: $dark-border;
@@ -204,6 +175,10 @@
     }
     &__content{
       color: $dark-text-info;
+    }
+    &__closeBtn{
+      color: $dark-text-info;
+      &:hover{ color: $dark-text-main; }
     }
   }
 
@@ -214,6 +189,17 @@
       .el-dialog__title{
         color: $dark-text-main;
       }
+    }
+    &__headerbtn{
+      .el-dialog__close{
+        color: $dark-text-info;
+        &:hover{
+          color: $dark-text-main;
+        }
+      }
+    }
+    .el-dialog__title{
+      color: lighten(black, 95%);
     }
     .el-dialog__body{
       color: $dark-text-main;
@@ -247,21 +233,6 @@
     .update-content{
       color: $dark-text-info;
       padding: 10px;
-    }
-  }
-
-  // DIALOG 补全
-  .el-dialog{
-    &__headerbtn{
-      .el-dialog__close{
-        color: $dark-text-info;
-        &:hover{
-          color: $dark-text-main;
-        }
-      }
-    }
-    .el-dialog__title{
-      color: lighten(black, 95%);
     }
   }
 
@@ -410,14 +381,6 @@
     color: $dark-text-main !important;
     &:hover {
       background-color: rgba(255, 255, 255, 0.1) !important;
-    }
-  }
-
-  // NOTIFICATION 补全
-  .el-notification{
-    &__closeBtn{
-      color: $dark-text-info;
-      &:hover{ color: $dark-text-main; }
     }
   }
 
