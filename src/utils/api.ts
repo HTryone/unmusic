@@ -150,3 +150,30 @@ export async function querySongInfoById(id: string | number): Promise<SongInfoRe
 export function getQMImageURLFromPMID(pmid: string, type = 1): string {
   return `${IXAREA_API_ENDPOINT}/music/qq-cover/${type}/${pmid}`;
 }
+
+// ===== 酷狗(KGG/KGM)在线封面 =====
+// 与 QQ 完全对称: 先 queryKugouCover 拿到封面直链, 再经 /music/img 代理取图(绕防盗链+CORS)。
+export interface KugouCoverInfo {
+  Id: string;
+  Type: number;
+}
+
+export async function queryKugouCover(
+  title: string,
+  artist?: string,
+  album?: string,
+): Promise<KugouCoverInfo> {
+  const endpoint = IXAREA_API_ENDPOINT + '/music/kugou-cover';
+  const params = new URLSearchParams([
+    ['Title', title],
+    ['Artist', artist ?? ''],
+    ['Album', album ?? ''],
+  ]);
+  const resp = await fetch(`${endpoint}?${params.toString()}`);
+  return await resp.json();
+}
+
+export function getKugouImageURL(coverURL: string): string {
+  if (!coverURL) return '';
+  return `${IXAREA_API_ENDPOINT}/music/img?url=${encodeURIComponent(coverURL)}`;
+}

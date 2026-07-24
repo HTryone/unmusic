@@ -5,10 +5,12 @@
  * 需要从设置中导入 KGMusicV3.db 或 .kgg.key 文件以获取密钥。
  */
 
-import { AudioMimeType, GetArrayBuffer, SniffAudioExt } from '@/decrypt/utils';
+import { AudioMimeType, GetArrayBuffer, GetCoverFromFile, GetMetaFromFile, SniffAudioExt } from '@/decrypt/utils';
+import { parseBlob as metaParseBlob } from 'music-metadata-browser';
 import { DecryptResult } from '@/decrypt/entity';
 import { decrypt, memoryKeyProvider } from '@/decrypt/kgg/index';
 import { loadKeysMap } from '@/utils/kgg-keys';
+import { getKugouImageURL, queryKugouCover } from '@/utils/api';
 
 export async function Decrypt(
   file: Blob,
@@ -30,12 +32,33 @@ export async function Decrypt(
   const mime = AudioMimeType[ext] || 'audio/mpeg';
   const blob = new Blob([audio as BlobPart], { type: mime });
 
+  // 提取内嵌元数据(歌名/歌手/内嵌封面)。酷狗下载源通常不含内嵌封面,
+  // 故内嵌为空时, 再按歌名/歌手经封面代理 Worker 去酷狗在线搜一张补全。
+  const musicMeta = await metaParseBlob(blob);
+  const { title, artist } = GetMetaFromFile(
+    raw_filename,
+    musicMeta.common.title || '',
+    String(musicMeta.common.artists || musicMeta.common.artist || ''),
+  );
+  let picture = GetCoverFromFile(musicMeta);
+  if (!picture) {
+    try {
+      const r = await queryKugouCover(title, artist, musicMeta.common.album || '');
+      if (r.Id) picture = getKugouImageURL(r.Id);
+    } catch (e) {
+      console.warn('酷狗在线封面获取失败, 回退无封面', e);
+    }
+  }
+
   return {
-    title: raw_filename,
+    title,
+    artist,
+    album: musicMeta.common.album,
     ext: ext,
     mime: mime,
     file: URL.createObjectURL(blob),
     blob: blob,
+    picture,
     rawExt: raw_ext,
     rawFilename: raw_filename,
   };

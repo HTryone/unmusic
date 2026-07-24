@@ -80,7 +80,72 @@ export default {
       }
     }
 
-    // ---- 3) 元数据端点(本期未实现): 友好返回让前端优雅降级 ----
+    // ---- 3) 酷狗搜索专辑/单曲封面: /music/kugou-cover?Title&Artist&Album ----
+    // 数据源: 酷狗匿名搜索接口(无需登录)。返回原 um-api 同款 {Id, Type},
+    // Id 为酷狗封面直链(已替换尺寸占位符), 前端再经 /music/img 代理取图(绕防盗链+CORS)。
+    if (url.pathname === '/music/kugou-cover') {
+      const title = url.searchParams.get('Title') || '';
+      const artist = url.searchParams.get('Artist') || '';
+      const album = url.searchParams.get('Album') || '';
+      const kw = `${title} ${artist}`.trim() || album;
+      if (!kw) {
+        return new Response(JSON.stringify({ Id: '', Type: 0 }), { status: 200, headers: jsonHeaders() });
+      }
+      try {
+        const api =
+          'https://songsearch.kugou.com/song_search_v2?platform=WebFilter&format=json&page_size=1&pages=1&keyword=' +
+          encodeURIComponent(kw);
+        const upstream = await fetch(api, {
+          headers: { Referer: 'https://www.kugou.com/', 'User-Agent': UA },
+        });
+        const data = await upstream.json();
+        const song = data?.data?.lists?.[0];
+        let cover = song?.union_cover || '';
+        if (cover) cover = cover.replace('{size}', '480');
+        return new Response(JSON.stringify({ Id: cover, Type: cover ? 1 : 0 }), {
+          status: 200,
+          headers: jsonHeaders(),
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ Id: '', Type: 0 }), { status: 200, headers: jsonHeaders() });
+      }
+    }
+
+    // ---- 4) 受限图片代理(绕防盗链 + 补 CORS): /music/img?url=<encoded> ----
+    // 酷狗图床 imge.kugou.com 校验 Referer, 浏览器直链会被拦; 这里由 Worker 带 Referer 取图并补 CORS。
+    // 仅放行 kugou.com 域名, 避免被当成公开图片代理滥用。
+    if (url.pathname === '/music/img') {
+      const raw = url.searchParams.get('url') || '';
+      let target;
+      try {
+        target = new URL(raw);
+      } catch {
+        return new Response('bad url', { status: 400, headers: CORS });
+      }
+      if (!/(\.|^)kugou\.com$/i.test(target.hostname)) {
+        return new Response('forbidden host', { status: 403, headers: CORS });
+      }
+      try {
+        const upstream = await fetch(target.toString(), {
+          headers: { Referer: 'https://www.kugou.com/', 'User-Agent': UA },
+        });
+        if (!upstream.ok) {
+          return new Response('upstream error', { status: upstream.status, headers: CORS });
+        }
+        return new Response(upstream.body, {
+          status: 200,
+          headers: {
+            ...CORS,
+            'Content-Type': upstream.headers.get('Content-Type') || 'image/jpeg',
+            'Cache-Control': 'public, max-age=86400',
+          },
+        });
+      } catch (e) {
+        return new Response('upstream error: ' + e.message, { status: 502, headers: CORS });
+      }
+    }
+
+    // ---- 5) 元数据端点(本期未实现): 友好返回让前端优雅降级 ----
     // 前端 fetchMetadataFromSongId -> querySongInfoById 会收到 code=-1 走 throw 分支,
     // 上层已 catch 回退本地元数据, 不影响解密。
     if (url.pathname.startsWith('/meta/qq-music-raw/')) {
