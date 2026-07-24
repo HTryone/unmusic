@@ -34,9 +34,15 @@
     overflow-x: hidden; /* 防止表格等宽内容引发页面级横向滚动（与表格内部滚动冲突） */
   }
   #app {
-    padding-top: 16px;
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-top: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  /* EP el-main 默认带 ~20px 内边距，与 #app padding 叠加造成手机上"双层间距"；
+     移动端收紧让内容更贴边、展示面积更大 */
+  .el-main {
+    --el-main-padding: 10px;
+    padding: var(--el-main-padding);
   }
   // 拖拽上传区占满宽度，防止固定宽度在小屏溢出
   .el-upload,
@@ -51,10 +57,13 @@
       column-gap: 12px;
       justify-content: flex-start;
     }
-    // 第一行“歌曲命名格式”标签与 radio 间距收紧
+    // 第一行"歌曲命名格式"标签与 radio 间距收紧
     > .el-row:first-child {
       row-gap: 6px;
     }
+    /* 移动端收紧控制区上下间距，让播放条和表格更靠上 */
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
   }
   audio {
     width: 100%;
@@ -66,8 +75,12 @@
 @media (max-width: 480px) {
   #app {
     font-size: 13px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .el-main {
+    --el-main-padding: 6px;
+    padding: var(--el-main-padding);
   }
   #app-footer {
     padding: 0 2px;
