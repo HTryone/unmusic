@@ -84,25 +84,13 @@ function handleEdit(row: any) {
 </script>
 
 <style scoped>
-/* 操作列图标放大（合法盒增长，不被 .cell 裁剪） */
-.ops-btn :deep(.el-icon) {
-  font-size: 18px;
-}
-/* 播放/暂停按钮图标再突出一点 */
-.play-pause-btn :deep(.el-icon) {
-  font-size: 24px;
-}
-
 /* ===== 手机端表格适配 ===== */
+/* 按钮图标放大(播放24px / 操作18px)已移至全局 src/scss/_table-override.scss（!important 兜底，确保手机端命中） */
 @media (max-width: 768px) {
   /* 隐藏歌手/专辑列（信息不丢，show-overflow-tooltip 已有），保留封面+歌曲+操作 */
   .artist-col,
   .album-col {
     display: none;
-  }
-  /* 仅让播放键图标与电脑端一致(24px)；封面与操作图标均保持桌面原样，不缩 */
-  .play-pause-btn :deep(.el-icon) {
-    font-size: 24px;
   }
 }
 </style>

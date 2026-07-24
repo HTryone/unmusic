@@ -5,6 +5,7 @@
 
 @import "normal";
 @import "player-bar"; // 首页自定义播放条（Home.vue 抽出）
+@import "table-override"; // 音乐列表操作列按钮（放大/配色全局兜底，确保手机端命中）
 @import "dark-mode"; // dark-mode 放在 normal 后面，以获得更高优先级
 
 
