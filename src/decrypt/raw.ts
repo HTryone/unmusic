@@ -1,4 +1,5 @@
-import { AudioMimeType, GetArrayBuffer, GetCoverFromFile, GetMetaFromFile, SniffAudioExt } from '@/decrypt/utils';
+import { AudioMimeType, GetArrayBuffer, GetMetaFromFile, SniffAudioExt } from '@/decrypt/utils';
+import { applyCoverAndWriteBack } from '@/utils/kugou_meta';
 
 import { DecryptResult } from '@/decrypt/entity';
 
@@ -11,22 +12,28 @@ export async function Decrypt(
   detect: boolean = true,
 ): Promise<DecryptResult> {
   let ext = raw_ext;
+  let audio: Uint8Array;
   if (detect) {
-    const buffer = new Uint8Array(await GetArrayBuffer(file));
-    ext = SniffAudioExt(buffer, raw_ext);
-    if (ext !== raw_ext) file = new Blob([buffer], { type: AudioMimeType[ext] });
+    audio = new Uint8Array(await GetArrayBuffer(file));
+    ext = SniffAudioExt(audio, raw_ext);
+    if (ext !== raw_ext) file = new Blob([audio], { type: AudioMimeType[ext] });
+  } else {
+    audio = new Uint8Array(await GetArrayBuffer(file));
   }
   const tag = await metaParseBlob(file);
   const { title, artist } = GetMetaFromFile(raw_filename, tag.common.title, String(tag.common.artists || tag.common.artist || ''));
+
+  // 封面：内嵌优先，无则在线搜酷狗，并写回输出文件 tag
+  const { blob, picture } = await applyCoverAndWriteBack(audio, ext, raw_filename);
 
   return {
     title,
     artist,
     ext,
     album: tag.common.album,
-    picture: GetCoverFromFile(tag),
-    file: URL.createObjectURL(file),
-    blob: file,
+    picture,
+    file: URL.createObjectURL(blob),
+    blob,
     mime: AudioMimeType[ext],
   };
 }
