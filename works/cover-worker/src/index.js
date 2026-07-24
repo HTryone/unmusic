@@ -99,8 +99,12 @@ export default {
           headers: { Referer: 'https://www.kugou.com/', 'User-Agent': UA },
         });
         const data = await upstream.json();
-        const song = data?.data?.lists?.[0];
-        let cover = song?.union_cover || '';
+        // union_cover 经常为空, 兜底取 Image 字段; 多扫前几条提高命中率
+        let cover = '';
+        for (const s of data?.data?.lists?.slice(0, 5) || []) {
+          cover = s?.union_cover || s?.Image || '';
+          if (cover) break;
+        }
         if (cover) cover = cover.replace('{size}', '480');
         return new Response(JSON.stringify({ Id: cover, Type: cover ? 1 : 0 }), {
           status: 200,
