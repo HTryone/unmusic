@@ -117,12 +117,7 @@ function handleEdit(row: any) {
     height: 28px !important;
     padding: 0 !important;
   }
-  .play-pause-btn :deep(.el-icon) {
-    font-size: 24px; /* 与电脑端一致 */
-  }
-  .ops-btn :deep(.el-icon) {
-    font-size: 16px;
-  }
+  /* 图标字号沿用 base 的 24/18px，手机与电脑完全一致；仅上面缩小了按钮盒子 */
 }
 @media (max-width: 480px) {
   /* 更小屏封面再缩 */
