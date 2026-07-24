@@ -1,0 +1,161 @@
+/*
+ * 样式 - 首页自定义播放条（Home.vue）
+ * 原 Home.vue 的 <style scoped> 抽出为全局 partial，避免单文件过大；
+ * 自定义 class（.player-bar / .play-btn 等）仅播放条使用，全局化无副作用。
+ */
+
+.player-bar {
+  margin: 0 auto 15px;
+  max-width: 720px; /* 播放条居中、宽度收住，不再全宽铺满 */
+}
+.now-playing {
+  font-size: 13px;
+  color: #67c23a;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+.player-bar audio {
+  display: none; /* 原生控件已由自定义播放条替代 */
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-slider {
+  flex: 1;
+  min-width: 120px;
+}
+.volume-slider {
+  width: 90px;
+  flex: none;
+}
+.time {
+  font-size: 14px;
+  color: #606266;
+  min-width: 42px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* 播放/暂停按钮：原生 <button> + <el-icon>，避免 el-button 默认白底观感；
+   仿 chrome 原生 audio 控件的播放键（圆底 + 深色图标，hover 浅高亮） */
+.player-controls .play-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #303133;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.player-controls .play-btn:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+.player-controls .play-btn:active:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.player-controls .play-btn:focus-visible {
+  outline: 2px solid rgba(64, 158, 255, 0.5);
+  outline-offset: 2px;
+}
+.player-controls .play-btn:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+/* 音量图标按钮：与播放键同风格（透明圆 + hover 浅高亮），点击切换静音 */
+.player-controls .vol-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #303133;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.player-controls .vol-icon:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+.player-controls .vol-icon:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.player-controls .vol-icon:focus-visible {
+  outline: 2px solid rgba(64, 158, 255, 0.5);
+  outline-offset: 2px;
+}
+/* 静音态：隐藏声波弧、显示斜杠 */
+.player-controls .vol-icon .vol-slash {
+  display: none;
+}
+.player-controls .vol-icon.muted .vol-wave {
+  display: none;
+}
+.player-controls .vol-icon.muted .vol-slash {
+  display: block;
+}
+/* 滑块小球：纯蓝实心、去掉白边与外围留白 */
+.progress-slider .el-slider__button,
+.volume-slider .el-slider__button {
+  background-color: #409eff;
+  border: none;
+  box-shadow: none;
+}
+
+/* ===== 手机端播放条适配 ===== */
+@media (max-width: 768px) {
+  .player-bar {
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+  .player-controls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .now-playing {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  /* 窄屏隐藏音量滑块（保留静音按钮点按切换），进度条撑满 */
+  .volume-slider {
+    display: none;
+  }
+  .time {
+    font-size: 12px;
+    min-width: 36px;
+  }
+  .progress-slider {
+    min-width: 80px;
+  }
+}
+@media (max-width: 480px) {
+  .player-controls .play-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .player-controls .vol-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .time {
+    font-size: 11px;
+    min-width: 32px;
+  }
+}

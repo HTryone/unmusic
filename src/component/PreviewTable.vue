@@ -1,6 +1,6 @@
 <template>
   <el-table :data="tableData" style="width: 100%">
-    <el-table-column label="封面">
+    <el-table-column label="封面" class-name="cover-col">
       <template #default="scope">
         <el-image :src="scope.row.picture" style="width: 100px; height: 100px">
           <template #error>
@@ -9,17 +9,17 @@
         </el-image>
       </template>
     </el-table-column>
-    <el-table-column label="歌曲" show-overflow-tooltip>
+    <el-table-column label="歌曲" show-overflow-tooltip class-name="title-col">
       <template #default="scope">
         <span>{{ scope.row.title }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="歌手" show-overflow-tooltip>
+    <el-table-column label="歌手" show-overflow-tooltip class-name="artist-col">
       <template #default="scope">
         <p>{{ scope.row.artist }}</p>
       </template>
     </el-table-column>
-    <el-table-column label="专辑" show-overflow-tooltip>
+    <el-table-column label="专辑" show-overflow-tooltip class-name="album-col">
       <template #default="scope">
         <p>{{ scope.row.album }}</p>
       </template>
@@ -29,7 +29,7 @@
         <el-button
           class="play-pause-btn"
           size="large"
-          :icon="isRowPlaying(scope.row) ? VideoPause : VideoPlay"
+          :icon="isRowPlaying(scope.row) ? PauseIcon : PlayIcon"
           circle
           :type="scope.row === props.playingRow ? 'primary' : 'success'"
           :title="isRowPlaying(scope.row) ? '暂停' : '播放'"
@@ -43,7 +43,20 @@
 </template>
 
 <script lang="ts" setup>
-import { VideoPlay, VideoPause, Download, Edit, Delete } from '@element-plus/icons-vue';
+import { h } from 'vue';
+import { Download, Edit, Delete } from '@element-plus/icons-vue';
+
+// 自定义播放/暂停图标：复用播放器(EP VideoPlay/VideoPause)的三角/双条真实形状，
+// 但去掉外圈圆环(圆环是 icon 自带 path 的前两段圆形子路径)，避免绿/蓝按钮上出现白色描边圈。
+const PlayIcon = {
+  render: () => h('svg', { viewBox: '0 0 1024 1024', xmlns: 'http://www.w3.org/2000/svg' },
+    h('path', { fill: 'currentColor', d: 'M444 660L688 512 444 364zm12-350 260 173.333a48 48 0 0 1 0 79.872L456 736.205A48 48 0 0 1 384 696.269V327.731a48 48 0 0 1 72-41.398z' })),
+};
+const PauseIcon = {
+  render: () => h('svg', { viewBox: '0 0 1024 1024', xmlns: 'http://www.w3.org/2000/svg' },
+    h('path', { fill: 'currentColor', d: 'M408 264q36 0 36 36v424q0 36-36 36t-36-36V300q0-36 36-36m200 0q36 0 36 36v424q0 36-36 36t-36-36V300q0-36 36-36' })),
+};
+
 import { RemoveBlobMusic } from '@/utils/utils';
 
 const props = defineProps<{
@@ -84,12 +97,13 @@ function handleEdit(row: any) {
 </script>
 
 <style scoped>
-/* 操作列图标放大（合法盒增长，不被 .cell 裁剪） */
-.ops-btn :deep(.el-icon) {
-  font-size: 18px;
-}
-/* 播放/暂停按钮图标再突出一点 */
-.play-pause-btn :deep(.el-icon) {
-  font-size: 24px;
+/* ===== 手机端表格适配 ===== */
+/* 按钮图标放大(播放24px / 操作18px)已移至全局 src/scss/_table-override.scss（!important 兜底，确保手机端命中） */
+@media (max-width: 768px) {
+  /* 隐藏歌手/专辑列（信息不丢，show-overflow-tooltip 已有），保留封面+歌曲+操作 */
+  .artist-col,
+  .album-col {
+    display: none;
+  }
 }
 </style>

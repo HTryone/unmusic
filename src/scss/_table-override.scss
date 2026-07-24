@@ -1,0 +1,10 @@
+/* 音乐列表操作列按钮样式（全局兜底）
+ * 原 scoped 写法在手机端偶发不命中，导致按钮图标回落到 Element Plus 默认大小；
+ * 此处提为全局并加 !important，强制桌面 / 手机两端一致。
+ * 仅覆盖图标字号与播放键外观，不影响按钮尺寸(size 属性)及其他列。 */
+.ops-btn .el-icon {
+  font-size: 18px !important;
+}
+.play-pause-btn .el-icon {
+  font-size: 32px !important; /* 内部图标扩大（盒子 40px 不变）；颜色(type)保留，未动 */
+}
