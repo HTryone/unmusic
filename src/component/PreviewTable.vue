@@ -107,7 +107,7 @@ function handleEdit(row: any) {
   }
   /* 操作按钮回缩到 default 尺寸，避免挤宽 */
   .play-pause-btn :deep(.el-icon) {
-    font-size: 16px;
+    font-size: 24px; /* 与电脑端一致 */
   }
   .ops-btn :deep(.el-icon) {
     font-size: 14px;
