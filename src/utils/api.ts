@@ -150,3 +150,19 @@ export async function querySongInfoById(id: string | number): Promise<SongInfoRe
 export function getQMImageURLFromPMID(pmid: string, type = 1): string {
   return `${IXAREA_API_ENDPOINT}/music/qq-cover/${type}/${pmid}`;
 }
+
+// 酷狗在线封面：搜封面直链 + 受限图床代理取图
+export async function queryKugouCover(title: string, artist?: string, album?: string): Promise<CoverInfo> {
+  const endpoint = IXAREA_API_ENDPOINT + '/music/kugou-cover';
+  const params = new URLSearchParams([
+    ['Title', title],
+    ['Artist', artist ?? ''],
+    ['Album', album ?? ''],
+  ]);
+  const resp = await fetch(`${endpoint}?${params.toString()}`);
+  return await resp.json();
+}
+
+export function getKugouImageURL(id: string): string {
+  return `${IXAREA_API_ENDPOINT}/music/img?url=${encodeURIComponent(id)}`;
+}

@@ -5,7 +5,7 @@
  * 需要从设置中导入 KGMusicV3.db 或 .kgg.key 文件以获取密钥。
  */
 
-import { AudioMimeType, GetArrayBuffer, SniffAudioExt } from '@/decrypt/utils';
+import { AudioMimeType, GetArrayBuffer, SniffAudioExt, applyCoverAndWriteBack } from '@/decrypt/utils';
 import { DecryptResult } from '@/decrypt/entity';
 import { decrypt, memoryKeyProvider } from '@/decrypt/kgg/index';
 import { loadKeysMap } from '@/utils/kgg-keys';
@@ -28,7 +28,9 @@ export async function Decrypt(
 
   const ext = SniffAudioExt(audio, format);
   const mime = AudioMimeType[ext] || 'audio/mpeg';
-  const blob = new Blob([audio as BlobPart], { type: mime });
+
+  // 封面：内嵌优先，无则在线搜酷狗，并写回输出文件 tag（让下载的文件自带封面）
+  const { blob, picture } = await applyCoverAndWriteBack(audio as Uint8Array, ext, raw_filename);
 
   return {
     title: raw_filename,
@@ -38,5 +40,6 @@ export async function Decrypt(
     blob: blob,
     rawExt: raw_ext,
     rawFilename: raw_filename,
+    picture: picture,
   };
 }
