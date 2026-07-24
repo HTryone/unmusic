@@ -5,18 +5,6 @@
 .ops-btn .el-icon {
   font-size: 18px !important;
 }
-/* 播放键：去掉彩色圆环（模板已移除 :type），改为透明图标按钮，与底部播放条一致 */
-.play-pause-btn.el-button {
-  background-color: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-.play-pause-btn.el-button:hover,
-.play-pause-btn.el-button:focus,
-.play-pause-btn.el-button:active {
-  background-color: rgba(0, 0, 0, 0.06) !important;
-  border-color: transparent !important;
-}
 .play-pause-btn .el-icon {
-  font-size: 32px !important; /* 内部图标再扩大（盒子 40px 不变） */
+  font-size: 32px !important; /* 内部图标扩大（盒子 40px 不变）；颜色(type)保留，未动 */
 }

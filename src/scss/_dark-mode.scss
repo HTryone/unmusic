@@ -420,14 +420,6 @@
       background-color: rgba(255, 255, 255, 0.1) !important;
     }
   }
-  /* 表格播放键：去掉彩色圆环后，暗色下图标跟随主文字色、hover 浅高亮（与底部播放条一致） */
-  .play-pause-btn.el-button {
-    color: $dark-text-main !important;
-    &:hover,
-    &:focus {
-      background-color: rgba(255, 255, 255, 0.1) !important;
-    }
-  }
 
   // NOTIFICATION 补全
   .el-notification{
