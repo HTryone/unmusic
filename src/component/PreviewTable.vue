@@ -29,7 +29,7 @@
         <el-button
           class="play-pause-btn"
           size="large"
-          :icon="isRowPlaying(scope.row) ? VideoPause : VideoPlay"
+          :icon="isRowPlaying(scope.row) ? PauseIcon : PlayIcon"
           circle
           :type="scope.row === props.playingRow ? 'primary' : 'success'"
           :title="isRowPlaying(scope.row) ? '暂停' : '播放'"
@@ -43,7 +43,20 @@
 </template>
 
 <script lang="ts" setup>
-import { VideoPlay, VideoPause, Download, Edit, Delete } from '@element-plus/icons-vue';
+import { h } from 'vue';
+import { Download, Edit, Delete } from '@element-plus/icons-vue';
+
+// 自定义播放/暂停图标：复用播放器(EP VideoPlay/VideoPause)的三角/双条真实形状，
+// 但去掉外圈圆环(圆环是 icon 自带 path 的前两段圆形子路径)，避免绿/蓝按钮上出现白色描边圈。
+const PlayIcon = {
+  render: () => h('svg', { viewBox: '0 0 1024 1024', xmlns: 'http://www.w3.org/2000/svg' },
+    h('path', { fill: 'currentColor', d: 'M444 660L688 512 444 364zm12-350 260 173.333a48 48 0 0 1 0 79.872L456 736.205A48 48 0 0 1 384 696.269V327.731a48 48 0 0 1 72-41.398z' })),
+};
+const PauseIcon = {
+  render: () => h('svg', { viewBox: '0 0 1024 1024', xmlns: 'http://www.w3.org/2000/svg' },
+    h('path', { fill: 'currentColor', d: 'M408 264q36 0 36 36v424q0 36-36 36t-36-36V300q0-36 36-36m200 0q36 0 36 36v424q0 36-36 36t-36-36V300q0-36 36-36' })),
+};
+
 import { RemoveBlobMusic } from '@/utils/utils';
 
 const props = defineProps<{
