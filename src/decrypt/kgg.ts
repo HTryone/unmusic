@@ -5,7 +5,8 @@
  * 需要从设置中导入 KGMusicV3.db 或 .kgg.key 文件以获取密钥。
  */
 
-import { AudioMimeType, GetArrayBuffer, SniffAudioExt, applyCoverAndWriteBack } from '@/decrypt/utils';
+import { AudioMimeType, GetArrayBuffer, SniffAudioExt } from '@/decrypt/utils';
+import { applyCoverAndWriteBack } from '@/utils/kugou_meta';
 import { DecryptResult } from '@/decrypt/entity';
 import { decrypt, memoryKeyProvider } from '@/decrypt/kgg/index';
 import { loadKeysMap } from '@/utils/kgg-keys';

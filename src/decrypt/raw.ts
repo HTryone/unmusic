@@ -1,4 +1,5 @@
-import { AudioMimeType, GetArrayBuffer, GetMetaFromFile, SniffAudioExt, applyCoverAndWriteBack } from '@/decrypt/utils';
+import { AudioMimeType, GetArrayBuffer, GetMetaFromFile, SniffAudioExt } from '@/decrypt/utils';
+import { applyCoverAndWriteBack } from '@/utils/kugou_meta';
 
 import { DecryptResult } from '@/decrypt/entity';
 
