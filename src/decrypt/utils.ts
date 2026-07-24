@@ -1,4 +1,4 @@
-import { IAudioMetadata, parseBlob as metaParseBlob } from 'music-metadata-browser';
+import { IAudioMetadata } from 'music-metadata-browser';
 import ID3Writer from 'browser-id3-writer';
 import MetaFlac from 'metaflac-js';
 
@@ -260,4 +260,3 @@ export function SplitFilename(n: string): { name: string; ext: string } {
     name: n.substring(0, pos),
   };
 }
-
