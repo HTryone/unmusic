@@ -222,10 +222,6 @@
           color: $dark-text-main;
           background-color: $dark-btn-bg;
         }
-        .el-input__suffix{
-          .el-input__suffix-inner{
-          }
-        }
         .el-input__count{
           .el-input__count-inner{
             background-color: transparent;
@@ -266,10 +262,6 @@
     }
     .el-dialog__title{
       color: lighten(black, 95%);
-    }
-    // overlay 遮罩
-    .el-overlay{
-      background-color: rgba(0,0,0,0.6);
     }
   }
 
