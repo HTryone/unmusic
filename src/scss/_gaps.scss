@@ -3,16 +3,6 @@
  */
 
 $gap: 5px;
-@for $item from 0 through 8 {
-  .mt-#{$item} { margin-top     : $gap * $item !important;}
-  .mb-#{$item} { margin-bottom  : $gap * $item !important;}
-  .ml-#{$item} { margin-left    : $gap * $item !important;}
-  .mr-#{$item} { margin-right   : $gap * $item !important;}
-   .m-#{$item} { margin         : $gap * $item !important;}
-
-  .pt-#{$item} { padding-top    : $gap * $item !important;}
-  .pb-#{$item} { padding-bottom : $gap * $item !important;}
-  .pl-#{$item} { padding-left   : $gap * $item !important;}
-  .pr-#{$item} { padding-right  : $gap * $item !important;}
-   .p-#{$item} { padding        : $gap * $item !important;}
-}
+// 仅保留项目实际使用的工具类（原 @for 生成 81 个，全站只用 mb-3 / ml-2）
+.mb-3 { margin-bottom: $gap * 3 !important; } // 15px
+.ml-2 { margin-left:   $gap * 2 !important; } // 10px
