@@ -4,6 +4,7 @@
 @import "element-ui-overrite";
 
 @import "normal";
+@import "player-bar"; // 首页自定义播放条（Home.vue 抽出）
 @import "dark-mode"; // dark-mode 放在 normal 后面，以获得更高优先级
 
 
