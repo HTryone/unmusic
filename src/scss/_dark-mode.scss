@@ -77,6 +77,15 @@
     border-color: $dark-border;
     color: $dark-text-main;
 
+    // 暗色下重定义 default 类型按钮的 EP hover/active/焦点变量，
+    // 让 EP 自身的 :hover / :focus-visible 规则改用蓝色而非亮色近白值。
+    // success/danger 有各自类型变量块(特异性更高)不受影响。
+    --el-button-hover-text-color: #{$blue};
+    --el-button-hover-bg-color: #{$blue};
+    --el-button-hover-border-color: #{$blue};
+    --el-button-active-bg-color: #{$blue};
+    --el-button-outline-color: #{$blue};
+
     &:active{
       transform: translateY(2px);
     }
@@ -109,6 +118,15 @@
           }
         }
       }
+    }
+    // 暗色下压过 EP .el-button.is-plain / .is-circle 的白变量
+    // EP 用 .el-button.is-plain{ --el-button-hover-bg-color: var(--el-fill-color-blank) } 
+    // 把 hover 底色设为白色(暗色下)。必须用与 EP 完全相同的选择器才能覆盖。
+    &.is-plain,
+    &.is-circle {
+      --el-button-hover-bg-color: #{$blue};
+      --el-button-hover-text-color: #fff;
+      --el-button-hover-border-color: #{$blue};
     }
   }
 
