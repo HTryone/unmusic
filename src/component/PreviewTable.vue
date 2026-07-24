@@ -1,6 +1,6 @@
 <template>
   <el-table :data="tableData" style="width: 100%">
-    <el-table-column label="封面">
+    <el-table-column label="封面" class-name="cover-col">
       <template #default="scope">
         <el-image :src="scope.row.picture" style="width: 100px; height: 100px">
           <template #error>
@@ -9,17 +9,17 @@
         </el-image>
       </template>
     </el-table-column>
-    <el-table-column label="歌曲" show-overflow-tooltip>
+    <el-table-column label="歌曲" show-overflow-tooltip class-name="title-col">
       <template #default="scope">
         <span>{{ scope.row.title }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="歌手" show-overflow-tooltip>
+    <el-table-column label="歌手" show-overflow-tooltip class-name="artist-col">
       <template #default="scope">
         <p>{{ scope.row.artist }}</p>
       </template>
     </el-table-column>
-    <el-table-column label="专辑" show-overflow-tooltip>
+    <el-table-column label="专辑" show-overflow-tooltip class-name="album-col">
       <template #default="scope">
         <p>{{ scope.row.album }}</p>
       </template>
@@ -91,5 +91,33 @@ function handleEdit(row: any) {
 /* 播放/暂停按钮图标再突出一点 */
 .play-pause-btn :deep(.el-icon) {
   font-size: 24px;
+}
+
+/* ===== 手机端表格适配 ===== */
+@media (max-width: 768px) {
+  /* 隐藏歌手/专辑列（信息不丢，show-overflow-tooltip 已有），保留封面+歌曲+操作 */
+  .artist-col,
+  .album-col {
+    display: none;
+  }
+  /* 封面缩小 */
+  .cover-col :deep(.el-image) {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  /* 操作按钮回缩到 default 尺寸，避免挤宽 */
+  .play-pause-btn :deep(.el-icon) {
+    font-size: 16px;
+  }
+  .ops-btn :deep(.el-icon) {
+    font-size: 14px;
+  }
+}
+@media (max-width: 480px) {
+  /* 更小屏封面再缩 */
+  .cover-col :deep(.el-image) {
+    width: 48px !important;
+    height: 48px !important;
+  }
 }
 </style>

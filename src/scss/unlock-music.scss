@@ -29,6 +29,9 @@
 // 平板及以下：整体左右留白，避免内容贴边；上传区与音频控件自适应宽度；
 // 控制栏的按钮 / 选项允许换行并保留间距，不再被挤成一团。
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden; /* 防止表格等宽内容引发页面级横向滚动（与表格内部滚动冲突） */
+  }
   #app {
     padding-top: 16px;
     padding-left: 12px;

@@ -603,4 +603,46 @@ export default defineComponent({
   border: none;
   box-shadow: none;
 }
+
+/* ===== 手机端播放条适配 ===== */
+@media (max-width: 768px) {
+  .player-bar {
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+  .player-controls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .now-playing {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  /* 窄屏隐藏音量滑块（保留静音按钮点按切换），进度条撑满 */
+  .volume-slider {
+    display: none;
+  }
+  .time {
+    font-size: 12px;
+    min-width: 36px;
+  }
+  .progress-slider {
+    min-width: 80px;
+  }
+}
+@media (max-width: 480px) {
+  .player-controls .play-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .player-controls .vol-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .time {
+    font-size: 11px;
+    min-width: 32px;
+  }
+}
 </style>
